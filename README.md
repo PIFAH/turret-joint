@@ -4,6 +4,11 @@ A three-dimensional joint for connecting up to 12 members to a central point all
 ## Motivation
 
 This project is part of the Gluss project.
+https://youtu.be/cpzPVwBoE_4?list=PL9nAioXQFlE7_1zlxAb6CpyUpH4s4bhc8
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=cpzPVwBoE_4
+" target="_blank"><img src="http://img.youtube.com/vi/cpzPVwBoE_4/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/cpzPVwBoE_4?list=PL9nAioXQFlE7_1zlxAb6CpyUpH4s4bhc8" frameborder="0" allowfullscreen></iframe>
 
