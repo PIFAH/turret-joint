@@ -24,3 +24,7 @@ If someone knows of this being done before, please inform me.
 You are free to use anything you find in the repo under either the GPL or the Creative Commons Share-Alike license v4.0.
 
 However, you are not free to apply for a patent on this.  That would be fraud and illegal. Don't do that.
+
+Public Invention seeks to give gifts to the whole world. If someone takes one of our freely published inventions and seeks a monopoly through a patent on it, it is directly counter to our mission, in addition to being fraudulent and illegal.
+
+However, you are welcome to manufacture and sell a Turret Joint to your heart's content. We (and the inventor in this case, Robert L. Read) would appreciate attribution of the idea.
