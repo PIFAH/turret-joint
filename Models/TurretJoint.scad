@@ -23,7 +23,9 @@
 
 // Part to print:
 
-part_to_render = "all"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
+part_to_render = "demoturret"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
+
+symmetric_or_tetrahedral = "tetrahedral"; // [symmetric,tetrahedral]
 
 
 // These units are in mm 
@@ -36,9 +38,11 @@ mounting_clevis_height = 25;
 
 // These units are in degrees
 // some of these are explicitly created from my Gluss Pusher model
-// 
+// These will not be used if you choose "symmetric", and will 
 least_spread_angle = 19.47;
 most_spread_angle = 48.59;
+
+symmetric_spread_half_angle = 15;
 
 screw_hole_radius_mm = 2; 
 locking_peg_percent_tolerance = 5;
@@ -71,6 +75,8 @@ firgelli_st_ch=11; // cavity height
 firgelli_st_cd = 8; // cavity depth
 firgelli_st_hole_center_offset = 2.0; // offset from center of main body for drill hole
 
+firgelli_hole_fit_fudge_factor = 0.8;
+
 module fake_module_so_customizer_does_not_show_computed_values() {
 }
 
@@ -83,7 +89,23 @@ $fa = 6;
 // tetrahedronal geomety---that is neither necessary nor obviously
 // correct in the case of Gluss Triangle.  I will have to 
 // generate the holes by a more general mechanism later.
-hole_angle = most_spread_angle - least_spread_angle;
+
+// These functiona are probably wrong, the central symmetric angle
+// when measured from the apex is not 30 degrees.
+central_sym_angle = 35.26439; // this is half the dihedral angle, unclear if this is right!
+// but more particular arcwin(sqrt(3)/3), which is how I compute this angle.
+
+function msa() = 
+(symmetric_or_tetrahedral == "symmetric") ? central_sym_angle+symmetric_spread_half_angle : most_spread_angle; 
+
+
+function lsa() =
+  (symmetric_or_tetrahedral == "symmetric") ? central_sym_angle-symmetric_spread_half_angle :least_spread_angle;    
+
+echo("most_spread");
+echo(msa());
+
+hole_angle = msa() - lsa();
 radius_at_rotor_edge = ball_radius+rotor_thickness+2*rotor_gap;
 outermost_radius = radius_at_rotor_edge + lock_thickness;
 
@@ -93,7 +115,7 @@ rotor_size_mm = (ball_radius+rotor_thickness+2*rotor_gap)*2.0*sin((hole_angle+2*
 
 post_radius_mm = radius_at_rotor_edge*sin(2*post_half_angle);
 
-rotor_hole_angle = (most_spread_angle + least_spread_angle) / 2;
+rotor_hole_angle = (msa() + lsa()) / 2;
 
 
 echo("Rotor Hole Angle");
@@ -520,11 +542,10 @@ module one_Firgelli_Stator_rotor() {
 // sw = shell_width
 // ch = cavity height
 // cd = cavity_depth
-// Let's put in 2 rotor_gaps for a little extra space...
 // Note: These should be printed, hoziontally, not vertically!
-module Firgelli_mount(cw,sw,ch, cd = 6,hole_center_distance = 2.5) {
+module Firgelli_mount(cw,sw,ch, cd,hole_center_distance) {
    d = ball_radius;
-    fudge = 0.75;
+    fudge = 0.77;
     
     difference() {
    union() {
@@ -564,7 +585,7 @@ translate([-(cd+sw*2)/2,0,0])
 rotate([0,90,0])
  difference() {
      cylinder(r = rotor_size_mm, h = (cd+sw*2)*1.1);
-     cylinder(r = (rotor_size_mm/2)*fudge, h = (cd+sw*2) *1.2);
+     cylinder(r = (rotor_size_mm/2)*firgelli_hole_fit_fudge_factor, h = (cd+sw*2) *1.2);
 }
  }
  
