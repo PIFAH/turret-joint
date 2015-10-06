@@ -15,24 +15,34 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
 // TO BE DONE: Some of the models are "guessed" so that they are not
-// really repeatabley parametrci.
+// really repeatabley parametric.
 // The naming is poor in many cases.
-// A better way of selecting parts to print needs to be implemented.
+// 
+// NOTE: The Turret Joint is invention create by Public Invention, and 
+// Robert L. Read in particular.  Public Invention has no intention of 
+// patenting this. Do not attempt to patent it. That would be fraudulent,
+// illegal, and compel us to seek legal redress. However, you are free 
+// to manufacture, use, and improve this invention so long as you do 
+// not attempt to monopolize it or prevent others from doing so.
 
-// Some parameters for the Beholder Joint
+// Some parameters for the Turret Joint
 
 // Part to print:
 
-part_to_render = "demoturret"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
+part_to_render = "firgellistator"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
 
 symmetric_or_tetrahedral = "tetrahedral"; // [symmetric,tetrahedral]
 
 
 // These units are in mm 
-ball_radius = 25.0; // Ths inner ball of the Beholder
-rotor_thickness = 2.5; // The thickness of the moving "rotors"
-lock_thickness = 2.5; // The thickness of the locking shell
-rotor_gap = 0.75; // a tolerance space to allow motion
+// Ths inner ball of the turret joint
+ball_radius = 25.0; 
+// The thickness of the moving "rotors"
+rotor_thickness = 2.5; 
+// The thickness of the locking shell
+lock_thickness = 2.5; 
+// a tolerance space to allow motion
+rotor_gap = 0.75; 
 
 mounting_clevis_height = 25;
 
@@ -44,8 +54,10 @@ most_spread_angle = 48.59;
 
 symmetric_spread_half_angle = 15;
 
-screw_hole_radius_mm = 2; 
-locking_peg_percent_tolerance = 5;
+screw_hole_radius_mm = 2;
+
+// percent reduction of peg diameter, needed for easy fit
+locking_peg_percent_tolerance = 10;
 
 
 // the edge difference of the rotor to make sure it doesn't fall out
@@ -60,19 +72,30 @@ ball_locking__peg_tolerance_factor = 1.0;
 
 three_hole_cap_seam_height_mm = 2.5;
 
+
 tube_mount_inner_radius = 3.0;
 tube_mount_out_radius = 4.5;
 
-firgelli_pr_cw=6; // cavity_width
-firgelli_pr_sw=3; // shell_width
-firgelli_pr_ch=9.5; // cavity height
-firgelli_pr_cd = 8; // cavity depth
-firgelli_pr_hole_center_offset = 2.5; // offset from center of main body for drill hole
+// firgelli pushod mount cavity width
+firgelli_pr_cw=6; 
+// firgelli pushod mount shell width
+firgelli_pr_sw=3; 
+// firgelli pushod mount cavity height
+firgelli_pr_ch=9.5; 
+// firgelli pushod mount cavity depth
+firgelli_pr_cd = 8; 
+// offset from center of main body for drill hole (pushrod)
+firgelli_pr_hole_center_offset = 2.5; 
 
+// firgelli stator mount cavity width
 firgelli_st_cw=9; // cavity_width
-firgelli_st_sw=3; // shell_width
-firgelli_st_ch=11; // cavity height
-firgelli_st_cd = 8; // cavity depth
+// firgelli stator mount shell width
+firgelli_st_sw=3; 
+// firgelli stator mount shell width
+firgelli_st_ch=11; 
+// firgelli stator mount shell depth
+firgelli_st_cd = 8; 
+// offset from center of main body for drill hole (stator)
 firgelli_st_hole_center_offset = 2.0; // offset from center of main body for drill hole
 
 firgelli_hole_fit_fudge_factor = 0.8;
@@ -248,6 +271,14 @@ module tubular_mount(outer_radius,inner_radius) {
      cylinder(r = rotor_size_mm, h = depth*1.1,center=true,$fn=20);
      cylinder(r = (rotor_size_mm/2)*fudge, h = depth *1.2,center=true,$fn=20);
    }
+   // now we subtract 3 #2 mounting holes - 2.032 mm!
+   cylinder(r = 2.032/2, h = depth, $fn=20,center = true);
+//   translate([depth/4,0,0])
+//   cylinder(r = 2.032/2, h = depth, $fn=20,center = true);
+      translate([-depth*0.3,0,0])
+   rotate([90,0,0])
+   cylinder(r = 2.032/2, h = depth, $fn=20,center = true);
+   
 
    }
 }
@@ -431,7 +462,11 @@ module tetrahedronal_lock() {
 // and provides room for the snowflake cuts but does not use 
 // a full ball.
 module nine_hole_cap_lock() {
-    seam_height = (hole_size_mm/2)*1.2;
+    // Actually, this is unscientific---we really need it 
+    // to be just big enough for the disc to not bump.
+    // However, I have not yet figured out that math...
+    seam_height_factor = 2;
+    seam_height = (hole_size_mm/2)*seam_height_factor;
     // Pythagorean theorem
     cap_radius = sqrt(outermost_radius* outermost_radius - seam_height*seam_height);
     union() {
