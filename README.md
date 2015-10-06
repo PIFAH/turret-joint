@@ -20,7 +20,7 @@ can be constructed by the individual Gluss members in the most fully and least f
 
 (Click to see YouTube video on GlussBot #1.)
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=SXRqqOAzkWg
-" target="_blank"><img src="http://img.youtube.com/vi/VwBoE_4/0.jpg"
+" target="_blank"><img src="http://img.youtube.com/vi/SXRqqOAzkWg/0.jpg"
 alt="Glussbot #1 Video" width="240" height="180" border="10" /></a>
 
 
