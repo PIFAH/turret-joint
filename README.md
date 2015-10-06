@@ -18,6 +18,9 @@ and with only 3 you can build a tetrahedron, the simplest 3D gluss robot.
 But the joint must allow for motion.  In particular, in a Gluss model, it must support the widest and narrowest angle which 
 can be constructed by the individual Gluss members in the most fully and least fully extended configurations.
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/SXRqqOAzkWg" frameborder="0" allowfullscreen></iframe>
+
+
 This repo holds the physical designs of such a joint, which I call a "turret joint".
 
 ## Sharing and Patent Law
