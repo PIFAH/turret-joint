@@ -3,11 +3,11 @@ A three-dimensional joint for connecting up to 12 members to a central point all
 
 ## Motivation
 
-This project is part of the Gluss project.
+This project is part of the Gluss project. (Click for introductory video.)
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=cpzPVwBoE_4
 " target="_blank"><img src="http://img.youtube.com/vi/cpzPVwBoE_4/0.jpg" 
-alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
+alt="Glussionics introduction" width="240" height="180" border="10" /></a>
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/cpzPVwBoE_4?list=PL9nAioXQFlE7_1zlxAb6CpyUpH4s4bhc8" frameborder="0" allowfullscreen></iframe>
 
@@ -18,7 +18,11 @@ and with only 3 you can build a tetrahedron, the simplest 3D gluss robot.
 But the joint must allow for motion.  In particular, in a Gluss model, it must support the widest and narrowest angle which 
 can be constructed by the individual Gluss members in the most fully and least fully extended configurations.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/SXRqqOAzkWg" frameborder="0" allowfullscreen></iframe>
+(Click to see YouTube video on GlussBot #1.)
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=SXRqqOAzkWg
+" target="_blank"><img src="http://img.youtube.com/vi/VwBoE_4/0.jpg"
+alt="Glussbot #1 Video" width="240" height="180" border="10" /></a>
+
 
 
 This repo holds the physical designs of such a joint, which I call a "turret joint".
