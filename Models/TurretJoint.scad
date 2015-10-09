@@ -29,9 +29,12 @@
 
 // Part to print:
 
-part_to_render = "firgellistator"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
+part_to_render = "all"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
 
-symmetric_or_tetrahedral = "tetrahedral"; // [symmetric,tetrahedral]
+symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
+
+// Note: equilateral_rotors are currently not really correct. This requires more work!
+use_equilateral_rotors = "valse"; // [false,true]
 
 
 // These units are in mm 
@@ -104,7 +107,7 @@ module fake_module_so_customizer_does_not_show_computed_values() {
 }
 
 // Let's go for some high-res spheres (I don't fully understand this variable!)
-$fa = 6;
+$fa = 3;
 
 
 // Computed parameters...
@@ -247,7 +250,7 @@ module tubular_mount(outer_radius,inner_radius) {
    union() { 
     translate([ball_radius+depth/2+postgap+lock_thickness,0,0])
     rotate([0,90,0])
-    spherical_rotor_disc();
+    rotor_disc();
         // The post
  
     translate([depth/2,0,0])
@@ -508,7 +511,7 @@ module shell(id,od) {
         sphere(id);
     }
 }
-
+// This needs to be switched to use rotor disc
 module tetrahedronal_pegs() {
     union() {
       difference() {
@@ -548,22 +551,74 @@ module one_tetrahedronal_rotor() {
     }
 }
 
+module one_tetrahedronal_rotor_aux() {
+    postgap = rotor_gap*2 + rotor_thickness;
+    translate([0,0,ball_radius+rotor_gap])
+    rotor_disc();  
+    rotate([0,180,0])
+    translate([0,0,-postgap])
+    cylinder(r=post_radius_mm,h=(postgap),center=true,$fn=20);
+    p0 = [0,0,0];
+    p1 = [0,0,-mounting_clevis_height];
+    width = hole_size_mm*0.8;
+    depth = post_radius_mm*2;
+    height = mounting_clevis_height;
+    color("green") six_hole_box_ep(p0, p1, 0.5, width, depth, height, $fn=20);  
+    
+}
+
 module spherical_rotor_disc() {
- 
        difference() {         
            beholderRotorsShell(ball_radius,0);
             // now make an cutting tool...
            difference() {
            beholderRotorsShell(ball_radius,5);
                 rotate([0,180,0])
-  //           cylinder(h = ball_radius*2, r1 = 0, r2 = 2*ball_radius*sin(theta), center = false);
                // Note: The is twice, so we double the rotor_size_mm
             cylinder(h = ball_radius*2, r1 = 0, r2 = (rotor_size_mm/2)*2, center = false);         
             }
                 // cleanup
-               cube([ball_radius*2.5,ball_radius*2.5,ball_radius/10],center=true);
+            cube([ball_radius*2.5,ball_radius*2.5,ball_radius/10],center=true);
         }
+}
+
+module equilateral_rotor_disc() {
+    br2 = ball_radius*2.0;
+    br = ball_radius;
+       difference() {         
+           beholderRotorsShell(ball_radius,0);
+            // now make an cutting tool...
+           union() {
+           rotate([0,0,180])
+           translate([0,-br+-rotor_size_mm/2,0])    
+           rotate([0,180,0])
+           translate([0,0,br])
+            color("red") cube([br2,br2,br2],center=true); 
+               
+             rotate([0,0,60])  
+           translate([0,-br + -rotor_size_mm/2,0])    
+           rotate([0,180,0])
+               translate([0,0,br])
+            color("blue") cube([br2,br2,br2],center=true);
+               
+            rotate([0,0,-60])  
+           translate([0,-br + -rotor_size_mm/2,0])    
+           rotate([0,180,0])
+                          translate([0,0,br])
+            color("green") cube([br2,br2,br2],center=true);               
+            }
+                // cleanup
+            cube([ball_radius*2.5,ball_radius*2.5,ball_radius/10],center=true);
+        }
+}
+
+module rotor_disc() {
+    if (use_equilateral_rotors != "true") {
+        spherical_rotor_disc();
+    } else {
+        equilateral_rotor_disc();
     }
+}
 
 // These cannot be printed horizontally on a Printrbot in PLA for some reason
 module one_Firgelli_pushrod_rotor() {
@@ -590,7 +645,7 @@ module Firgelli_mount(cw,sw,ch, cd,hole_center_distance) {
  
  translate([-((d + (cd/2+sw))+postgap),0,0])
               rotate([0,270,0])
- spherical_rotor_disc();
+ rotor_disc();
         // The post
  
         translate([-((cd+sw)/2+(postgap)),0,0])
@@ -668,8 +723,8 @@ if (part_to_render == "all" || part_to_render == "tubemount")
 
 if (part_to_render == "all" || part_to_render == "rotor")   
     translate([0,-ball_radius*2,0])
-rotate([0,-56,0])
-one_tetrahedronal_rotor();
+     rotate([0,-56,0])
+     one_tetrahedronal_rotor();
 
 if (part_to_render == "all" || part_to_render == "firgellipushrod") 
     translate([0,ball_radius*2,0])
@@ -679,6 +734,12 @@ if (part_to_render == "all" || part_to_render == "firgellistator")
     translate([30,ball_radius*2,0])
     one_Firgelli_Stator_rotor();
 
+//equilateral_rotor_disc();
+//
+//translate([25,0])
+//rotor_disc();
+
+// one_tetrahedronal_rotor_aux();
 
 
 
