@@ -28,13 +28,12 @@
 // Some parameters for the Turret Joint
 
 // Part to print:
-
-part_to_render = "all"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
+part_to_render = "ninecap"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
 // Note: equilateral_rotors are currently not really correct. This requires more work!
-use_equilateral_rotors = "valse"; // [false,true]
+use_equilateral_rotors = "true" ; // [false,true]
 
 
 // These units are in mm 
@@ -107,7 +106,7 @@ module fake_module_so_customizer_does_not_show_computed_values() {
 }
 
 // Let's go for some high-res spheres (I don't fully understand this variable!)
-$fa = 3;
+// $fa = 3;
 
 
 // Computed parameters...
@@ -132,14 +131,18 @@ echo("most_spread");
 echo(msa());
 
 hole_angle = msa() - lsa();
-radius_at_rotor_edge = ball_radius+rotor_thickness+2*rotor_gap;
-outermost_radius = radius_at_rotor_edge + lock_thickness;
+radius_at_rotor_outer_edge = ball_radius+rotor_thickness+rotor_gap;
+radius_at_rotor_inner_edge = ball_radius+rotor_gap;
+radius_at_lock_inner_edge = ball_radius+rotor_thickness+2*rotor_gap;
+outermost_radius = radius_at_rotor_outer_edge + lock_thickness;
 
-hole_size_mm = radius_at_rotor_edge*2.0*sin(hole_angle/2);
+hole_size_mm = radius_at_lock_inner_edge*2.0*sin(hole_angle/2);
 
-rotor_size_mm = (ball_radius+rotor_thickness+2*rotor_gap)*2.0*sin((hole_angle+2*post_half_angle)/2.0);
 
-post_radius_mm = radius_at_rotor_edge*sin(2*post_half_angle);
+
+rotor_size_mm = (radius_at_lock_inner_edge)*2.0*sin((hole_angle+2*post_half_angle)/2.0);
+
+post_radius_mm = radius_at_rotor_outer_edge*sin(2*post_half_angle);
 
 rotor_hole_angle = (msa() + lsa()) / 2;
 
@@ -244,18 +247,21 @@ module tubular_mount(outer_radius,inner_radius) {
     depth = width*2;
     postgap = lock_thickness+rotor_gap*2;
     fudge = 0.75;
+    conjoin = 1.0; // This is a little fudge factor to make sure we have full connectivity
     
     // This is for my particular carbon fiber connector rod, this really needs to be parametrized.  
   difference() {  
    union() { 
-    translate([ball_radius+depth/2+postgap+lock_thickness,0,0])
+//    translate([ball_radius+depth/2+postgap+lock_thickness,0,0])
+ //   translate([4,0,0])
+    translate([depth/2+postgap,0,0])
     rotate([0,90,0])
     rotor_disc();
-        // The post
+    // The post
  
     translate([depth/2,0,0])
     rotate([0,90,0])
-    cylinder(r=post_radius_mm,h=(postgap),center=false,$fn=20); 
+    cylinder(r=post_radius_mm,h=(postgap+conjoin),center=false,$fn=20); 
         
     difference() {
         cube([depth,width,width],center=true);
@@ -420,7 +426,7 @@ module planar_circle_cut_tool() {
 }
 
 module bolting_flange() { 
-    translate([radius_at_rotor_edge+lock_thickness,0,-post_radius_mm])
+    translate([radius_at_rotor__outer_edge+lock_thickness,0,-post_radius_mm])
     difference() {
     cylinder(r = hole_size_mm*0.4,h = post_radius_mm,$fn=20);
         translate([lock_thickness,0,-post_radius_mm])
@@ -483,6 +489,7 @@ module nine_hole_cap_lock() {
         }
         translate([0,0,seam_height])
         cylinder(r = cap_radius, h = lock_thickness,center = true);
+        color("red") bolting_flanges();
     }
 }
 
@@ -502,6 +509,7 @@ module three_hole_cap_lock() {
         }
         translate([0,0,seam_height])
         cylinder(r = cap_radius, h = lock_thickness,center = true);
+        color("green") bolting_flanges();
     }
 }
 
@@ -545,24 +553,24 @@ module tetrahedronal_rotors() {
 }
 
 module one_tetrahedronal_rotor() {
-    difference() {
-        tetrahedronal_rotors();
-        translate([-ball_radius*1.8,0,-ball_radius*2]) cube(ball_radius*4,center = true);
-    }
-}
-
-module one_tetrahedronal_rotor_aux() {
     postgap = rotor_gap*2 + rotor_thickness;
-    translate([0,0,ball_radius+rotor_gap])
+    conjoin_fudge = rotor_gap*1;
+    
+    // The rotor (I want this to land with the outer edge at the origin.)
     rotor_disc();  
+    
+    // the post
     rotate([0,180,0])
-    translate([0,0,-postgap])
-    cylinder(r=post_radius_mm,h=(postgap),center=true,$fn=20);
+    translate([0,0,postgap])
+    cylinder(r=post_radius_mm,h=(postgap*2)+conjoin_fudge,center=true,$fn=20);
+    
+    // the six-hole mount
     p0 = [0,0,0];
     p1 = [0,0,-mounting_clevis_height];
     width = hole_size_mm*0.8;
     depth = post_radius_mm*2;
     height = mounting_clevis_height;
+    translate([0,0,-postgap])
     color("green") six_hole_box_ep(p0, p1, 0.5, width, depth, height, $fn=20);  
     
 }
@@ -585,31 +593,41 @@ module spherical_rotor_disc() {
 module equilateral_rotor_disc() {
     br2 = ball_radius*2.0;
     br = ball_radius;
-       difference() {         
+    
+    // Basic plan here is to make cutting tool and cut away fro the shell what we don't want.
+    // The cutting tool should leave a cone centered at the origin which gets exactly halfway
+    // to the next hole when the peg is at its extreme position. This will be a great circle 
+    // on the sphere.  The result should be a spherical equilateral triangle.
+    angle = asin((rotor_size_mm/2)/(radius_at_rotor_outer_edge)) ;
+    echo("angle =");
+    echo(angle);
+    translate([0,0,(radius_at_rotor_inner_edge+rotor_thickness)])
+      difference() {         
            beholderRotorsShell(ball_radius,0);
             // now make an cutting tool...
-           union() {
-           rotate([0,0,180])
-           translate([0,-br+-rotor_size_mm/2,0])    
-           rotate([0,180,0])
-           translate([0,0,br])
-            color("red") cube([br2,br2,br2],center=true); 
-               
-             rotate([0,0,60])  
-           translate([0,-br + -rotor_size_mm/2,0])    
-           rotate([0,180,0])
-               translate([0,0,br])
-            color("blue") cube([br2,br2,br2],center=true);
-               
-            rotate([0,0,-60])  
-           translate([0,-br + -rotor_size_mm/2,0])    
-           rotate([0,180,0])
-                          translate([0,0,br])
-            color("green") cube([br2,br2,br2],center=true);               
-            }
-                // cleanup
-            cube([ball_radius*2.5,ball_radius*2.5,ball_radius/10],center=true);
-        }
+           // These need to be changed to use cones....
+         union() {
+           scale([2.0,2.0,2.0])
+          rotate([0,angle,0])
+          rotate([0,180,0])
+          translate([0,-ball_radius,0])
+          color("red") cube(size = ball_radius*2);
+    
+               rotate([0,0,-120])
+             scale([2.0,2.0,2.0])
+          rotate([0,angle,0])
+          rotate([0,180,0])
+                       translate([0,-ball_radius,0])
+          color("blue") cube(size = ball_radius*2);
+    
+           rotate([0,0,120])
+             scale([2.0,2.0,2.0])
+          rotate([0,angle,0])
+         rotate([0,180,0])
+                       translate([0,-ball_radius,0])
+         color("green") cube(size = ball_radius*2);                          
+           }
+       }
 }
 
 module rotor_disc() {
@@ -637,13 +655,14 @@ module Firgelli_mount(cw,sw,ch, cd,hole_center_distance) {
    d = ball_radius;
     fudge = 0.77;
     
+    
     difference() {
    union() {
         // The spherical part of the rotor -- needs to cut with inverted tool!
        postgap_buffer = 1.3;
          postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
  
- translate([-((d + (cd/2+sw))+postgap),0,0])
+ translate([-((cd+sw)/2+(postgap)),0,0])
               rotate([0,270,0])
  rotor_disc();
         // The post
@@ -712,14 +731,9 @@ if (part_to_render == "all" || part_to_render == "lock")
    translate([-ball_radius*3,0,0])
    tetrahedronal_lock();
 
-//if (part_to_render == "all" || part_to_render == "sixholeclevis")
-//   translate([-ball_radius*2,0])
-//six_hole_clevis();
-
 if (part_to_render == "all" || part_to_render == "tubemount")
    translate([ball_radius*2,0])
    tubular_mount(4.5,3.0);
-
 
 if (part_to_render == "all" || part_to_render == "rotor")   
     translate([0,-ball_radius*2,0])
@@ -734,12 +748,14 @@ if (part_to_render == "all" || part_to_render == "firgellistator")
     translate([30,ball_radius*2,0])
     one_Firgelli_Stator_rotor();
 
-//equilateral_rotor_disc();
+// equilateral_rotor_disc();
 //
 //translate([25,0])
 //rotor_disc();
 
-// one_tetrahedronal_rotor_aux();
+// one_tetrahedronal_rotor();
+
+//  tubular_mount(4.5,3.0);
 
 
 
