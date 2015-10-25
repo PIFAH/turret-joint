@@ -1,6 +1,8 @@
 # turret-joint
 A three-dimensional joint for connecting up to 12 members to a central point allowing angular movement of members
 
+### Note: After building this, I learned that it was essentially invented in 1999 as expressed in this [patent](https://patents.google.com/patent/US20010002964A1/en) by Se-Kyong Song, Dong-Soo Kwon, Wan Soo Kim. This joint should really be called the "Song Kwon Kim" or SKK joint in honor of them.  However, "turret-joint" better captures what it actually is shaped like.
+
 ## Motivation
 
 This project is part of the Gluss project. (Click for introductory video.)
