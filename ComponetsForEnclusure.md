@@ -15,3 +15,12 @@ of any kind that we can bend the spring wires into.
 4. It must fit within a 10 centimeter cube (10 centimeters on each side.)
 5. It needs 4 entry points, each of which must be a slot 13 mms long and 4 mm wide.
 
+
+## Future enhancements
+
+In the future, we need each cell to drive up to 6 motors.  We may construct our own board using a cheap part like [http://www.robotshop.com/en/sn754410-dual-motor-driver.html](http://www.robotshop.com/en/sn754410-dual-motor-driver.html).
+
+This would make the enclosure smaller, probably.
+
+Eventually, there will be no need to use the Arduino shield structure, but rather we can layout a board of our own.  However, I think it best to stick with the Arduino shield geometry for now.
+
