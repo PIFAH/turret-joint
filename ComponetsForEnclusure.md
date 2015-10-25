@@ -24,3 +24,5 @@ This would make the enclosure smaller, probably.
 
 Eventually, there will be no need to use the Arduino shield structure, but rather we can layout a board of our own.  However, I think it best to stick with the Arduino shield geometry for now.
 
+Soon, we need to add inexpensive radio control. We can probably just leave some room in the enclosure for that.
+
