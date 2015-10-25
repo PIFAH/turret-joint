@@ -1,6 +1,6 @@
 # Major comoponents to place inside enclosure in simplest implementation
 
-* Two (2) Seeed Studio Motor Controllers (v 2.0?)
+* Two (2) Seeed Studio [Motor Shields v2.0](http://www.seeedstudio.com/wiki/Motor_Shield_V2.0)
 * One Arduino Uno
 * A 12 volt lipo or lithium ion battery (currently unspecified). This will be a typical Radio controlled hobby battery of some kind.
 * A radio board of some kind (currently unspecified. This is a lower priority.)
