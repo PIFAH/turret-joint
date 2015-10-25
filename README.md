@@ -31,16 +31,14 @@ This repo holds the physical designs of such a joint, which I call a "turret joi
 
 ## Sharing and Patent Law
 
-The Public Invention project does not seek patents on any of its invention.  The Turret Joint is a significant invention. 
-If someone knows of this being done before, please inform me.
+The Public Invention project does not seek patents on any of its inventions.  
+If someone knows of this being done before, please inform me. **I now know this was previously invented in 1999 by Song, Kwong and Kim.**
 
 You are free to use anything you find in the repo under either the GPL or the Creative Commons Share-Alike license v4.0.
 
-However, you are not free to apply for a patent on this.  That would be fraud and illegal. Don't do that.
-
 Public Invention seeks to give gifts to the whole world. If someone takes one of our freely published inventions and seeks a monopoly through a patent on it, it is directly counter to our mission, in addition to being fraudulent and illegal.
 
-However, you are welcome to manufacture and sell a Turret Joint to your heart's content. We (and the inventor in this case, Robert L. Read) would appreciate attribution of the idea.
+However, you are welcome to manufacture and sell a Turret Joint to your heart's content, since the Song Kwon Kim patent has expired. Certain improvements made by Public Invention will not be patented. We (and the inventor in this case, Robert L. Read) would appreciate attribution of those improvements, after crediting Song, Kwon and Kim with the basic idea..
 
 ## Notes and To-be-dones
 
