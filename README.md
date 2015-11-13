@@ -43,3 +43,8 @@ However, you are welcome to manufacture and sell a Turret Joint to your heart's 
 ## Notes and To-be-dones
 
 I 3D printed some triangular rotors. However, I did it wrong.  I now believe I have to use more spherical trigonometry to produce curved edges, and also need to consider the case of three rotors coming together in the tightest possible packing. The result is likely to be a gently curved triangle---sort of an "inflated triangele", that is just a little bigger than the circular center.
+
+### Sealing of Ninjaflex
+
+I followed Mikey77's instructions for sealing ninjaflex using Loctite Frabric glue thinned with MEK. After the second coat, it seemd to work.  This opens up some possibilities. If I can inject salt water and and sense resistance change, then I may have created a very effective way of making multiple sensors at the same time with a 3D printer.
+
