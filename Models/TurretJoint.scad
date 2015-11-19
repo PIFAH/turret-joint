@@ -19,7 +19,9 @@
 // The naming is poor in many cases.
 // 
 // NOTE: The Turret Joint is invention create by Public Invention, and 
-// Robert L. Read in particular.  Public Invention has no intention of 
+// Robert L. Read in particular, extending the patent of Kwong, Song, and Kim:
+// https://patents.google.com/patent/US20010002964A1/en
+// Public Invention has no intention of 
 // patenting this. Do not attempt to patent it. That would be fraudulent,
 // illegal, and compel us to seek legal redress. However, you are free 
 // to manufacture, use, and improve this invention so long as you do 
@@ -28,7 +30,7 @@
 // Some parameters for the Turret Joint
 
 // Part to print:
-part_to_render = "ninecap"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator]
+part_to_render = "tetrahelixlock"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -106,7 +108,7 @@ module fake_module_so_customizer_does_not_show_computed_values() {
 }
 
 // Let's go for some high-res spheres (I don't fully understand this variable!)
-// $fa = 3;
+$fa = 3;
 
 
 // Computed parameters...
@@ -426,7 +428,7 @@ module planar_circle_cut_tool() {
 }
 
 module bolting_flange() { 
-    translate([radius_at_rotor__outer_edge+lock_thickness,0,-post_radius_mm])
+    translate([radius_at_rotor_outer_edge+lock_thickness,0,-post_radius_mm])
     difference() {
     cylinder(r = hole_size_mm*0.4,h = post_radius_mm,$fn=20);
         translate([lock_thickness,0,-post_radius_mm])
@@ -436,11 +438,31 @@ module bolting_flange() {
     }
 }
 
+module flange_capture() {
+    nut_size = screw_hole_radius_mm*1.5;
+    color("blue")
+      translate([radius_at_rotor_outer_edge+lock_thickness,0,-post_radius_mm*2+-post_radius_mm])
+    cylinder(r = nut_size,h = post_radius_mm*2,$fn=20);
+}
+
+module flange_capture_cut_tool() {
+    flange_capture();
+    rotate([0,0,120])
+    flange_capture();
+    rotate([0,0,240])
+    flange_capture();
+}
+
 module bolting_flanges() {
     bolting_flange();
     rotate([0,0,120])
     bolting_flange();
     rotate([0,0,240])
+    bolting_flange();
+}
+
+module apical_flange() {
+    rotate([0,90,0])
     bolting_flange();
 }
 
@@ -454,16 +476,174 @@ module snowflake_planar_cut_tool() {
 }
 
 module tetrahedronal_lock() {
+    difference() {
     union() {
     difference() {
         beholderLock(ball_radius);
         equilateral_cut_tool_for_shell(hole_size_mm/2);
+
         // Now we will attempt to make the other cut outs...
         // These should split the angles of the tetrahedron...
         // So they should be rotate 30 degrees from the x-axis
        snowflake_planar_cut_tool();
     }
     color("green") bolting_flanges();
+    color("blue") apical_flange();
+    }
+    // now cut away room for "nut capture" of the bolting flanges.
+    // probably could solve this problem better by making the flanges larger,
+    // but then my existing pieces would not fit
+    flange_capture_cut_tool();
+    }
+    
+}
+
+
+module create_symmetric_tetrahedron(height,base,r) {
+    h = base*sqrt(3.0)/2.0;
+    basehalf = base / 2.0;
+    ZH = height;
+points = [
+    // first point is the origin
+[ 0, 0, 0],
+[ h*2/3,  0, -ZH],
+[-h/3, -basehalf , -ZH],
+[-h/3, basehalf, -ZH]];
+edges = [
+[0,1],
+[0,2],
+[0,3]
+    ];
+   cylindricalize_edges(edges,points,r); 
+}
+
+// At present this a left-handed, (ccw) helix.
+// I am going to make it bi-handed by adding another hole!
+module tetrahelix_lock() {
+    beta = acos(1/3);
+    alpha = (180 - beta)/2;
+    echo("beta");
+    echo(beta);
+    echo(alpha);
+    unzipping = 7.356105;
+    r4 = ball_radius*4;
+    difference() {
+      union() {
+        difference() {
+          beholderLock(ball_radius);
+
+           rotate([0,beta/2,0])
+           rotate([0,0,60])
+           create_symmetric_tetrahedron(ball_radius*4,alpha*2,hole_size_mm/2);
+            
+           rotate([0,0,120])
+           rotate([0,beta/2,0])
+           rotate([0,0,60])
+           create_symmetric_tetrahedron(ball_radius*4,alpha*2,hole_size_mm/2);
+            
+            
+            points = [
+            [0,0,0],
+            [r4,0,0]
+            ];
+         
+          // This is approximately correct, but is probably wrong...
+          // I need to develop a more general roational system
+          // to have any chance to figuring this out.
+          // Note that this system also requires either that design 
+          // a new cap or do something else to design this.       
+           rotate([0,0,unzipping/2])
+           rotate([unzipping/2,-unzipping/2,0])
+           rotate([0,0,120])
+           color("blue")
+           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+           
+           // This is to produce a structure supporting the "right handed" tetrahelix as well.
+           rotate([0,0,-120])
+           rotate([0,0,unzipping/2])
+           rotate([unzipping/2,-unzipping/2,0])
+           rotate([0,0,120])
+           color("blue")
+           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+   
+        }
+        rotate([0,0,90])
+      color("green") bolting_flanges();
+      color("blue") apical_flange();
+      }
+    // now cut away room for "nut capture" of the bolting flanges.
+    // probably could solve this problem better by making the flanges larger,
+    // but then my existing pieces would not fit
+     rotate([0,0,90])
+    flange_capture_cut_tool();
+   }  
+}
+
+module tetrahelix_cap_cut() {
+        beta = acos(1/3);
+    alpha = (180 - beta)/2;
+    echo("beta");
+    echo(beta);
+    echo(alpha);
+    unzipping = 7.356105;
+    r4 = ball_radius*4;
+    difference() {
+      union() {
+        difference() {
+          beholderLock(ball_radius);    
+            points = [
+            [0,0,0],
+            [r4,0,0]
+            ];
+         
+          // This is approximately correct, but is probably wrong...
+          // I need to develop a more general roational system
+          // to have any chance to figuring this out.
+          // Note that this system also requires either that design 
+          // a new cap or do something else to design this.       
+           rotate([0,0,60+-unzipping/2])
+           rotate([0,-unzipping/2,0])
+           rotate([0,0,120])
+           color("blue")
+           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+            
+           rotate([0,0,120])
+           rotate([0,0,60+-unzipping/2])
+           rotate([0,-unzipping/2,0])
+           rotate([0,0,120])
+           color("blue")
+           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+        }
+        rotate([0,0,90])
+      color("green") bolting_flanges();
+      }
+     rotate([0,0,90])
+    flange_capture_cut_tool();
+   }  
+}
+
+module tetrahelix_cap() {
+      // Actually, this is unscientific---we really need it 
+    // to be just big enough for the disc to not bump.
+    // However, I have not yet figured out that math...nontheless
+    // experience has shown this does work with my tirangle stators.
+    seam_height_factor = 2.5;
+    seam_height = (hole_size_mm/2)*seam_height_factor;
+    // Pythagorean theorem
+    cap_radius = sqrt(outermost_radius* outermost_radius - seam_height*seam_height);
+    rotate([0,0,-60]) 
+    union() {
+        difference() {  
+           rotate([180,0,0])        
+           union() {  
+                beholderBall(ball_radius);
+              tetrahelix_cap_cut();
+            }
+            translate([0,0,ball_radius/2+seam_height])
+                cylinder(r = ball_radius * 2, h = ball_radius,center = true);
+        }
+       translate([0,0,seam_height])
+        cylinder(r = cap_radius, h = lock_thickness,center = true);
     }
 }
 
@@ -473,14 +653,16 @@ module tetrahedronal_lock() {
 module nine_hole_cap_lock() {
     // Actually, this is unscientific---we really need it 
     // to be just big enough for the disc to not bump.
-    // However, I have not yet figured out that math...
-    seam_height_factor = 2;
+    // However, I have not yet figured out that math...nontheless
+    // experience has shown this does work with my tirangle stators.
+    seam_height_factor = 2.5
+    ;
     seam_height = (hole_size_mm/2)*seam_height_factor;
     // Pythagorean theorem
     cap_radius = sqrt(outermost_radius* outermost_radius - seam_height*seam_height);
     union() {
         difference() {
-            union() {  
+           union() {  
                 rotate([0,0,30]) rotate([180,0,0]) beholderBall(ball_radius);
                 rotate([180,0,0]) tetrahedronal_lock();
             }
@@ -489,7 +671,6 @@ module nine_hole_cap_lock() {
         }
         translate([0,0,seam_height])
         cylinder(r = cap_radius, h = lock_thickness,center = true);
-        color("red") bolting_flanges();
     }
 }
 
@@ -653,51 +834,50 @@ module one_Firgelli_Stator_rotor() {
 // Note: These should be printed, hoziontally, not vertically!
 module Firgelli_mount(cw,sw,ch, cd,hole_center_distance) {
    d = ball_radius;
-    fudge = 0.77;
+   fudge = 0.77;
     
+   postgap_fudge = 1.3;
     
-    difference() {
-   union() {
+   postgap_buffer = 1.3;
+   postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
+    
+   difference() {
+     union() {
         // The spherical part of the rotor -- needs to cut with inverted tool!
-       postgap_buffer = 1.3;
-         postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
- 
- translate([-((cd+sw)/2+(postgap)),0,0])
+       translate([-((cd+sw)/2+(postgap)),0,0])
               rotate([0,270,0])
- rotor_disc();
+       rotor_disc();
         // The post
  
-        translate([-((cd+sw)/2+(postgap)),0,0])
+        translate([-((cd+sw)/2+(postgap))+-1,0,0])
         rotate([0,90,0])
-        cylinder(r=post_radius_mm,h=(postgap),center=false,$fn=20); 
-    difference() {
+        cylinder(r=post_radius_mm,h=(postgap*postgap_fudge),center=false,$fn=20); 
+        difference() {
         
      // construct the shell
-   //     translate([-2,0,0])
-    cube([cd+sw,cw+sw,ch+sw],center=true);
+          cube([cd+sw,cw+sw,ch+sw],center=true);
      // construct the cavity
-        union() {
+          union() {
             // the real cavity
-        cube([cd,cw,ch],center=true);
+            cube([cd,cw,ch],center=true);
             // cleanup
             translate([3,0,0])
-            cube([cd+4,cw,ch],center= true );
-        }
+              cube([cd+4,cw,ch],center= true );
+          }
        // drill out the holes
-        translate([hole_center_distance,0,0])
-        rotate([90,0,0])
-        cylinder(r = 2.25+.2, h=ball_radius, center= true,$fn=20);
+          translate([hole_center_distance,0,0])
+          rotate([90,0,0])
+          cylinder(r = 2.25+.2, h=ball_radius, center= true,$fn=20);
+      }
     }
-}
 // now we subtract the rotor hole size to make sure it fits!!
-translate([-(cd+sw*2)/2,0,0])
-rotate([0,90,0])
- difference() {
-     cylinder(r = rotor_size_mm, h = (cd+sw*2)*1.1);
-     cylinder(r = (rotor_size_mm/2)*firgelli_hole_fit_fudge_factor, h = (cd+sw*2) *1.2);
-}
- }
- 
+    translate([-(cd+sw*2)/2,0,0])
+    rotate([0,90,0])
+    difference() {
+      cylinder(r = rotor_size_mm, h = (cd+sw*2)*1.1);
+      cylinder(r = (rotor_size_mm/2)*firgelli_hole_fit_fudge_factor, h = (cd+sw*2) *1.2);
+    }
+  }
 }
 
 
@@ -711,13 +891,14 @@ module demo_turret_joint() {
 
 
 
+
 if (part_to_render == "all" || part_to_render == "demoturret")
    translate([-ball_radius*3,-ball_radius*6,0])
     demo_turret_joint();
 
 if (part_to_render == "all" || part_to_render == "ninecap")
    translate([-ball_radius*3,-ball_radius*6,0])
-   color( "green") nine_hole_cap_lock();
+   nine_hole_cap_lock();
 
 if (part_to_render == "all" || part_to_render == "cap")
    translate([-ball_radius*3,-ball_radius*3,0])
@@ -748,14 +929,15 @@ if (part_to_render == "all" || part_to_render == "firgellistator")
     translate([30,ball_radius*2,0])
     one_Firgelli_Stator_rotor();
 
-// equilateral_rotor_disc();
-//
-//translate([25,0])
-//rotor_disc();
+if (part_to_render == "all" || part_to_render == "tetrahelixlock")
+ //  translate([-ball_radius*3,ball_radius,0])
+   tetrahelix_lock();
+   tetrahelix_cap();
 
-// one_tetrahedronal_rotor();
+if (part_to_render == "all" || part_to_render == "tetrahelixcap")
+   translate([-ball_radius*3,ball_radius,ball_radius*2])
+   tetrahelix_cap();
 
-//  tubular_mount(4.5,3.0);
 
 
 
