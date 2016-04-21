@@ -1,4 +1,4 @@
-//    TurretJoin.scad
+//    TurretJoint.scad
 //    Copyright 2015, Robert L. Read
 
 //    This program is free software: you can redistribute it and/or modify
@@ -15,10 +15,10 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
 // TO BE DONE: Some of the models are "guessed" so that they are not
-// really repeatabley parametric.
+// really repeatably parametric.
 // The naming is poor in many cases.
 // 
-// NOTE: The Turret Joint is invention create by Public Invention, and 
+// NOTE: The Turret Joint is invention created by Public Invention, and 
 // Robert L. Read in particular, extending the patent of Kwong, Song, and Kim:
 // https://patents.google.com/patent/US20010002964A1/en
 // Public Invention has no intention of 
@@ -30,7 +30,7 @@
 // Some parameters for the Turret Joint
 
 // Part to print:
-part_to_render = "tetrahelixlock"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap]
+part_to_render = "ball"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -932,7 +932,7 @@ if (part_to_render == "all" || part_to_render == "firgellistator")
 if (part_to_render == "all" || part_to_render == "tetrahelixlock")
  //  translate([-ball_radius*3,ball_radius,0])
    tetrahelix_lock();
-   tetrahelix_cap();
+//   tetrahelix_cap();
 
 if (part_to_render == "all" || part_to_render == "tetrahelixcap")
    translate([-ball_radius*3,ball_radius,ball_radius*2])
