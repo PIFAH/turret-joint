@@ -31,18 +31,6 @@ The Customizer allows you to create 3D-printed files directly for down load and 
 
 
 
-This project is part of the Gluss project. (Click for introductory video.)
-
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=cpzPVwBoE_4
-" target="_blank"><img src="http://img.youtube.com/vi/cpzPVwBoE_4/0.jpg" 
-alt="Glussionics introduction" width="240" height="180" border="10" /></a>
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/cpzPVwBoE_4?list=PL9nAioXQFlE7_1zlxAb6CpyUpH4s4bhc8" frameborder="0" allowfullscreen></iframe>
-
-In order to build a Gluss, we have to have a joint that can connect multiple members coming into a point.  In the Octet truss
-configuration of Buckminster Fuller, this join is a cuboctahedron connecting up to 12 members, though more generally nine, 
-and with only 3 you can build a tetrahedron, the simplest 3D gluss robot.
-
 But the joint must allow for motion.  In particular, in a Gluss model, it must support the widest and narrowest angle which 
 can be constructed by the individual Gluss members in the most fully and least fully extended configurations.
 
