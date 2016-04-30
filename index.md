@@ -70,7 +70,7 @@ geomtries that allow for scalability of static structures or dynamic robots.
 
 These are the [tetrahelix](https://en.wikipedia.org/wiki/Boerdijk%E2%80%93Coxeter_helix) and the [Octet Truss](https://en.wikipedia.org/wiki/Space_frame) developed by Buckminster Fuller.
 
-<img width="80%" src="https://upload.wikimedia.org/wikipedia/commons/6/68/Coxeter_helix_3_colors_cw.png">
+<img width="30%" src="https://upload.wikimedia.org/wikipedia/commons/6/68/Coxeter_helix_3_colors_cw.png">
 
 <a title="By Tomruen (Own work) [CC BY-SA 4.0 (http://creativecommons.org/licenses/by-sa/4.0)], via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File%3ACoxeter_helix_3_colors_cw.png"><img width="512" alt="Coxeter helix 3 colors cw" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Coxeter_helix_3_colors_cw.png/512px-Coxeter_helix_3_colors_cw.png"/></a>
 
