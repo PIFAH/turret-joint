@@ -55,11 +55,28 @@ given actuator with a number, Q, which is the ratio of the fully extended linear
 In the case of the Firgelli L16 actuators that we actually use, the Q is about 1.5. Basically, the higher Q is the more
 eccentricty (acuteness) we have to be able to handle.
 
-TODO: add a better diagram or photo here.
+<img width="80%" src="./images/TurrentJointPieces.png">
 
 The basic condition is that the rotors must not bump into each other, and must not fall out of the hole. The larger the hole,
 the larger the rotor must be to remain captured. However, the larger the rotors are the sooner they "bump" if the angle becomes
 acute.
+
+## Using with the OctetTruss Pattern and the TetraHelix Pattern
+
+The turret joint does not allow infinite rotation. Each member can move about 30 degrees.  It is therefore incumbent upon us to partially match the geometry of the holes to the intended application.
+
+Altough you may modify the OpenScad file that generates all of the parts to generate any custom gemomety you need, it is useful to conisder the two most regular
+geomtries that allow for scalability of static structures or dynamic robots.
+
+These are the [tetrahelix](https://en.wikipedia.org/wiki/Boerdijk%E2%80%93Coxeter_helix) and the [Octet Truss](https://en.wikipedia.org/wiki/Space_frame) developed by Buckminster Fuller.
+
+<img width="80%" src="https://upload.wikimedia.org/wikipedia/commons/6/68/Coxeter_helix_3_colors_cw.png">
+
+<a title="By Tomruen (Own work) [CC BY-SA 4.0 (http://creativecommons.org/licenses/by-sa/4.0)], via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File%3ACoxeter_helix_3_colors_cw.png"><img width="512" alt="Coxeter helix 3 colors cw" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Coxeter_helix_3_colors_cw.png/512px-Coxeter_helix_3_colors_cw.png"/></a>
+
+<img src="https://patentimages.storage.googleapis.com/pages/US2986241-2.png" alt="Octet Truss from Bucky's 1961 patent" style="width:30%" />
+
+In the OpenSCAD file you will find parts to represent both of these geometries, which are slightly different. Note that the the tetrarhelix has chirality or "handedness", because it can be constructed in either a left-handed helix or a right-handed helix. However, by putting extra holes in the part, I believe I have made it possible to create either with a single part (and the matching cap.)
 
 
 
