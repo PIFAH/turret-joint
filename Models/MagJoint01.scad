@@ -3,28 +3,35 @@
 // 2) Magnet connector which is a cup that holds the magnet
 // 3) Magnet plug which holds the magnet in the cup
 
-// Currently copyright Robert Gatliff, 2016, all rights reserved.
-// I have not yet obtained permission from Robert Gatliff to release this
-// under a different license.
+// Copyright Robert Gatliff, 2016.
+
+// This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
 
 // Modifications by Robert L. Read, 2016
 
 // magnet dimensions:
 
 // For 1/2" long and 1/4" in diameter:
-mag_d=25.4/4;
-mag_h=25.4/2;
+// mag_d=(25.4/4)+1.0; // adding 1 mm for easier insertion.
+// mag_h=25.4/2 + 0.5; // adding a fudge to slight it in easier.
+
+// For 1" long and 1/2" in diameter:
+mag_d=(25.4/2)+1.0; // adding 1 mm for easier insertion.
+mag_h=25.4/1 + 0.5; // adding a fudge to slight it in easier.
+
+wire_hole_diameter = 1.0; 
 // mag_d=12; // magnet diam
 // mag_h=3;  // magnet height
 
 // magnet holder dimensions:
 // lip_t=1;  // lip thickness of the cup that holds the magnet
 // Rob will try half this:
-lip_t = 0.5;
+lip_t = 0.8;
 
 // coupler dimensions:
-coupler_d  = 20; // coupler diameter at the mid section (where glued together)
-coupler_h  = 16; // coupler height of each half
+coupler_d  = 25; // coupler diameter at the mid section (where glued together)
+coupler_h  = mag_h+5; // coupler height of each half
+actuator_h = 16;
 head_depth = 12; // actuator head depth into coupler
 
 // actuator dimensions:
@@ -57,10 +64,11 @@ module head_and_bolt(hx,hy,hz,bd,b2e,bl=bolt_l) {
 // defines each types of actuator head
 module actuator_head_and_bolt(type)
 {
+    hz = 30;
   if (type=="pushrod")
-    head_and_bolt(hx=9.5,hy=6, hz=30, bd=4.5, b2e=4);
+    head_and_bolt(hx=9.5,hy=6, hz=hz, bd=4.5, b2e=4);
   else if (type=="stator")
-    head_and_bolt(hx=11, hy=9, hz=30, bd=4.5, b2e=4);
+    head_and_bolt(hx=11, hy=9, hz=hz, bd=4.5, b2e=5);
   else
     echo("BAD ACTUATOR TYPE");
 }
@@ -71,10 +79,24 @@ module actuator_head_and_bolt(type)
 // hd = head depth
 module actuator_connector(bd, ch, type, hd)
 {
+    hz = 30;
+  difference() {
   difference() {
     cylinder(h=ch, d1=bd, d2=16);
     translate([0,0,ch-hd])  
       actuator_head_and_bolt(type);
+  }
+ if (type=="pushrod") 
+     // we want to cut an additional cylinder to make room
+    translate([0,0,ch-3])
+  // adding fudge factor
+    cylinder(h=ch,d=11+0.1);
+  else if (type=="stator")
+  // This is creating a problem for simplify3d for some unknown reason
+    translate([12,0,(ch/2)+(ch-5)])
+   cube([11,11,ch+10],center=true);
+  else
+    echo("BAD ACTUATOR TYPE");
   }
 }
 
@@ -96,6 +118,27 @@ module magnet_connector(bd, ch, md, lt)
   }
 }
 
+// bd = base diameter
+// ch = coupler height
+// md = magnet diameter
+// lt = lip thickness
+module magnet_connector_side_cut(bd, ch, md, mh, lt)
+{
+  difference() {
+      magnet_connector(bd,ch,md,lt);
+      
+      // cut the slide hole....
+      translate([0,md,(mh-1)/2 ])
+      cube([md,md*2,mh+1],center=true);
+// now cut a small hole that we can jam a steel wire through (like a twist tie).
+      translate([0,bd/4,ch*1/3])
+      rotate([0,90,0]) // lay it on its side...
+      translate([0,0,-md*5]) // center...
+      cylinder(h=md*10,d=wire_hole_diamter);
+  }
+}
+
+
 // ch = coupler height
 // md = magnet diameter
 // mh = magnet height (thickness)
@@ -110,17 +153,38 @@ module magnet_plug(ch, md, mh)
 
 module def_stator_connector()
 {
-  actuator_connector(bd=coupler_d, ch=coupler_h, type="stator", hd=head_depth);
+  actuator_connector(bd=coupler_d, ch=actuator_h, type="stator", hd=head_depth);
 }
 
 module def_pushrod_connector()
 {
-  actuator_connector(bd=coupler_d, ch=coupler_h, type="pushrod", hd=head_depth);
+  actuator_connector(bd=coupler_d, ch=actuator_h, type="pushrod", hd=head_depth);
 }
 
 module def_magnet_connector()
 {
   magnet_connector(bd=coupler_d, ch=coupler_h, md=mag_d, lt=lip_t);
+}
+
+module def_magnet_connector_side_cut()
+{
+  magnet_connector_side_cut(bd=coupler_d, ch=coupler_h, md=mag_d,mh=mag_h, lt=lip_t);
+}
+
+module def_one_piece_connector(type="pushrod")
+{
+    union() {
+        // let's fudge just a hair so no faces conincide:
+        // Probably should just make the magnet_height just 
+        // a bit bigger than reality to fit.
+        translate([0,0,-0.5])
+        if (type=="pushrod")
+            def_pushrod_connector();
+        else 
+            def_stator_connector();
+        rotate([180,0,0])
+        def_magnet_connector_side_cut();
+    }
 }
 
 module def_magnet_plug()
@@ -133,15 +197,21 @@ module def_magnet_plug()
 // examples
 // --------
 
-translate([-40,0,0])
-  def_pushrod_connector();
+//translate([-40,0,0])
+// def_pushrod_connector();
 
-translate([-15,0,0])
-  def_stator_connector();
+translate([0,30,0])
+ def_one_piece_connector("pushrod");
 
-translate([15,0,0])
-  def_magnet_connector();
+translate([0,-30,0])
+ def_one_piece_connector("stator");
 
-translate([40,0,0])
-  def_magnet_plug();
+//translate([-15,0,0])
+// def_stator_connector();
+
+ //translate([15,0,0])
+//  def_magnet_connector_side_cut();
+
+//translate([40,0,0])
+//  def_magnet_plug();
 
