@@ -30,7 +30,7 @@
 // Some parameters for the Turret Joint
 
 // Part to print:
-part_to_render = "ball"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap]
+part_to_render = "firgellistator"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -908,7 +908,7 @@ if (part_to_render == "all" || part_to_render == "ball")
    translate([-ball_radius*3,ball_radius*3,0])
    color( "Purple") beholderBall(ball_radius);
 
-if (part_to_render == "all" || part_to_render == "lock")
+ if (part_to_render == "all" || part_to_render == "lock")
    translate([-ball_radius*3,0,0])
    tetrahedronal_lock();
 
