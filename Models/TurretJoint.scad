@@ -30,7 +30,7 @@
 // Some parameters for the Turret Joint
 
 // Part to print:
-part_to_render = "firgellistator"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap]
+part_to_render = "tetrahelixlock"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -58,7 +58,7 @@ most_spread_angle = 48.59;
 
 symmetric_spread_half_angle = 15;
 
-screw_hole_radius_mm = 2;
+screw_hole_radius_mm = 3;
 
 // percent reduction of peg diameter, needed for easy fit
 locking_peg_percent_tolerance = 10;
@@ -427,11 +427,12 @@ module planar_circle_cut_tool() {
             cylinder(ball_radius*4,r=hole_size_mm/2);
 }
 
-module bolting_flange() { 
+module bolting_flange(radius, radius_disp) { 
     translate([radius_at_rotor_outer_edge+lock_thickness,0,-post_radius_mm])
     difference() {
-    cylinder(r = hole_size_mm*0.4,h = post_radius_mm,$fn=20);
-        translate([lock_thickness,0,-post_radius_mm])
+    cylinder(r = radius,h = post_radius_mm,$fn=20);
+ //       translate([lock_thickness*1.5,0,-post_radius_mm])
+        translate([radius*radius_disp,0,-post_radius_mm])
          cylinder(r = screw_hole_radius_mm,h = post_radius_mm*4,$fn=20);
         translate([-ball_radius+-lock_thickness/2,-ball_radius/2,-ball_radius/2])
         cube(ball_radius);
@@ -446,24 +447,30 @@ module flange_capture() {
 }
 
 module flange_capture_cut_tool() {
-    flange_capture();
+    radius = hole_size_mm*0.6;
+    displacement = 0.4;
+    flange_capture(radius,displacement);
     rotate([0,0,120])
-    flange_capture();
+    flange_capture(radius,displacement);
     rotate([0,0,240])
-    flange_capture();
+    flange_capture(radius,displacement);
 }
 
 module bolting_flanges() {
-    bolting_flange();
+    radius = hole_size_mm*0.6;
+    displacement = 0.4;
+    bolting_flange(radius,displacement);
     rotate([0,0,120])
-    bolting_flange();
+    bolting_flange(radius,displacement);
     rotate([0,0,240])
-    bolting_flange();
+    bolting_flange(radius,displacement);
 }
 
 module apical_flange() {
+    radius = hole_size_mm*0.35;
+        displacement = 0.1;
     rotate([0,90,0])
-    bolting_flange();
+    bolting_flange(radius,displacement);
 }
 
 module snowflake_planar_cut_tool() {
@@ -908,7 +915,7 @@ if (part_to_render == "all" || part_to_render == "ball")
    translate([-ball_radius*3,ball_radius*3,0])
    color( "Purple") beholderBall(ball_radius);
 
- if (part_to_render == "all" || part_to_render == "lock")
+if (part_to_render == "all" || part_to_render == "lock")
    translate([-ball_radius*3,0,0])
    tetrahedronal_lock();
 
