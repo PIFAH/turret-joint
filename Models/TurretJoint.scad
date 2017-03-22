@@ -947,6 +947,9 @@ module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
     
    postgap_fudge = 1.3;
     
+   current_width = 7/9; // This is based on the current way we are making the GlussCon;
+    // This is somewhat arbitray and will change when we fix the joint.
+    
    postgap_buffer = 1.3;
    postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
    cup_pos = -((cd+sw)/2+(postgap));
@@ -964,7 +967,7 @@ module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
         translate([-5,0,0])
         rotate([0,90,0])
         difference() {
-          cylinder(r=con_post_radius, h = con_post_length);
+          cylinder(r=con_post_radius*current_width, h = con_post_length);
           translate([20,0,con_post_radius])
           rotate([0,90,0])
           translate([0,0,-con_post_length])
