@@ -30,7 +30,7 @@
 // Some parameters for the Turret Joint
 
 // Part to print:
-part_to_render = "tetrahelixlock"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap]
+part_to_render = "assembly"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -198,7 +198,46 @@ module cylindricalize_edges(edges,points,rad) {
     for(e = edges) {
         p0 = points[e[0]];
         p1 = points[e[1]];
-        color("red") cylinder_ep(p0, p1, rad, rad, $fn=20);
+        color("red") 
+        cylinder_ep(p0, p1, rad, rad, $fn=20);
+    }
+}
+module aimAt(p) {
+    rotate([0, 0, atan2(p.y,p.x)])
+        rotate([0, atan2(norm([p.x,p.y]), p.z), 0])
+    rotate([0,-90,0])
+        children();
+}
+
+//// First Point
+//a=[20,5,10];
+//
+//// Second Point
+//b=[100,10,30];
+//
+//// Point Markers
+//translate(a) color("red") sphere(r=1);
+//translate(b) color("green") sphere(r=1);
+//
+//// Starting at a, aim towards b. Cylinder length is the magnitude of b-a
+//translate(a) aimAt(b-a) cylinder(r=.5,h=norm(b-a));
+
+module Add_Mounts(edges,points,rotor_displacement,render_first) {
+    echo(len(edges));
+    s = render_first ? 0 : 1;
+    for(i = [s:len(edges)-1]) {
+        e = edges[i];
+ //  for(e = edges) {
+        p0 = points[e[0]];
+        p1 = points[e[1]];
+       n1 = norm(p1);
+       rd = rotor_displacement;
+       pt1 = (p1/n1)*rd;
+        color("green") 
+ //      cylinder_ep(p0, p1, 2, 2, $fn=20);
+       translate([pt1.x,pt1.y,pt1.z])
+       aimAt(p1)
+       one_glusscon_rotor();
     }
 }
 
@@ -392,11 +431,35 @@ module beholderBall(d) {
 }
 }
 
+module beholderBall_full(d) {
+    difference() {
+    union() {
+ //       difference() {
+            sphere(d);
+ //           translate([-d,-d,0]) cube(2*d);
+  //      }
+ //       three_locking_pegs(1.0 - locking_peg_percent_tolerance/100.0);
+    }
+ //   rotate([0,0,60]) three_locking_pegs(1.0 + locking_peg_percent_tolerance/100.0);
+}
+}
+
 module beholderLock(d) {
     inner = d + rotor_thickness + rotor_gap*2;
     outer = inner + lock_thickness;
     difference() {
         beholderBall(outer);
+        sphere(inner);
+    }
+    
+}
+
+
+module beholderLock_full(d) {
+    inner = d + rotor_thickness + rotor_gap*2;
+    outer = inner + lock_thickness;
+    difference() {
+        sphere(outer);
         sphere(inner);
     }
     
@@ -524,6 +587,24 @@ edges = [
    cylindricalize_edges(edges,points,r); 
 }
 
+module create_symmetric_tetrahedron_mnt(height,base,r,rd,render_first) {
+    h = base*sqrt(3.0)/2.0;
+    basehalf = base / 2.0;
+    ZH = height;
+points = [
+    // first point is the origin
+[ 0, 0, 0],
+[ h*2/3,  0, -ZH],
+[-h/3, -basehalf , -ZH],
+[-h/3, basehalf, -ZH]];
+edges = [
+[0,1],
+[0,2],
+[0,3]
+    ];
+   Add_Mounts(edges,points,rd,render_first); 
+}
+
 // At present this a left-handed, (ccw) helix.
 // I am going to make it bi-handed by adding another hole!
 module tetrahelix_lock() {
@@ -563,6 +644,7 @@ module tetrahelix_lock() {
            rotate([unzipping/2,-unzipping/2,0])
            rotate([0,0,120])
            color("blue")
+ 
            cylindricalize_edges([[0,1]],points,hole_size_mm/2);
            
            // This is to produce a structure supporting the "right handed" tetrahelix as well.
@@ -570,7 +652,7 @@ module tetrahelix_lock() {
            rotate([0,0,unzipping/2])
            rotate([unzipping/2,-unzipping/2,0])
            rotate([0,0,120])
-           color("blue")
+           color("green")
            cylindricalize_edges([[0,1]],points,hole_size_mm/2);
    
         }
@@ -796,24 +878,31 @@ module equilateral_rotor_disc() {
            // These need to be changed to use cones....
          union() {
            scale([2.0,2.0,2.0])
-          rotate([0,angle,0])
-          rotate([0,180,0])
-          translate([0,-ball_radius,0])
-          color("red") cube(size = ball_radius*2);
+           rotate([0,angle,0])
+           rotate([0,180,0])
+           translate([0,-ball_radius,0])
+           color("orange") cube(size = ball_radius*2);
     
-               rotate([0,0,-120])
-             scale([2.0,2.0,2.0])
-          rotate([0,angle,0])
-          rotate([0,180,0])
-                       translate([0,-ball_radius,0])
-          color("blue") cube(size = ball_radius*2);
+           rotate([0,0,-120])
+           scale([2.0,2.0,2.0])
+           rotate([0,angle,0])
+           rotate([0,180,0])
+           translate([0,-ball_radius,0])
+           color("blue") cube(size = ball_radius*2);
     
            rotate([0,0,120])
-             scale([2.0,2.0,2.0])
-          rotate([0,angle,0])
-         rotate([0,180,0])
-                       translate([0,-ball_radius,0])
-         color("green") cube(size = ball_radius*2);                          
+           scale([2.0,2.0,2.0])
+           rotate([0,angle,0])
+           rotate([0,180,0])
+           translate([0,-ball_radius,0])
+           color("green") cube(size = ball_radius*2);                          
+           }
+           difference() {
+            cylinder(r=100,h=100,center=true);
+               // how can this be related to the parameters?
+            fudge = 0.7;
+            r = (rotor_size_mm)*fudge;
+            cylinder(r=r,h=100,center=true);
            }
        }
 }
@@ -832,6 +921,57 @@ module one_Firgelli_pushrod_rotor() {
 }
 module one_Firgelli_Stator_rotor() {
       Firgelli_mount(firgelli_st_cw,firgelli_st_sw,firgelli_st_ch,firgelli_st_cd,firgelli_st_hole_center_offset);
+}
+
+
+module one_glusscon_rotor() {
+    Glusscon_mount(firgelli_pr_cw,firgelli_pr_sw,firgelli_pr_ch,firgelli_pr_cd,firgelli_pr_hole_center_offset);
+}
+
+// cw = cavity_width
+// sw = shell_width
+// ch = cavity height
+// cd = cavity_depth
+// Note: These should be printed, hoziontally, not vertically!
+module glussconmount() {
+    Glusscon_mount(firgelli_pr_cw,firgelli_pr_sw,firgelli_pr_ch,firgelli_pr_cd,firgelli_pr_hole_center_offset);
+}
+
+module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
+   d = ball_radius;
+   fudge = 0.77;
+
+// These need to be accomplished in some reasonable way.    
+   con_post_radius = hole_size_mm/2;
+   con_post_length = con_post_radius*2;
+    
+   postgap_fudge = 1.3;
+    
+   postgap_buffer = 1.3;
+   postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
+   cup_pos = -((cd+sw)/2+(postgap));
+   translate([-cup_pos+ + rotor_thickness,0,0])
+   difference() {
+     union() {
+        // The spherical part of the rotor -- needs to cut with inverted tool!
+       translate([cup_pos,0,0])
+              rotate([0,270,0])
+       rotor_disc();
+        // The connecting post
+        translate([-((cd+sw)/2+(postgap))+-1,0,0])
+        rotate([0,90,0])
+        cylinder(r=post_radius_mm,h=(postgap*postgap_fudge),center=false,$fn=20); 
+        translate([-5,0,0])
+        rotate([0,90,0])
+        difference() {
+          cylinder(r=con_post_radius, h = con_post_length);
+          translate([20,0,con_post_radius])
+          rotate([0,90,0])
+          translate([0,0,-con_post_length])
+          cylinder(r=con_post_radius/2, h = con_post_length*3,center=true);
+        }
+    }
+  }
 }
 
 // cw = cavity_width
@@ -896,6 +1036,99 @@ module demo_turret_joint() {
  three_hole_cap_lock();
 }
 
+module tetrahelix_lock_full() {
+    beta = acos(1/3);
+    alpha = (180 - beta)/2;
+    echo("beta");
+    echo(beta);
+    echo(alpha);
+    unzipping = 7.356105;
+    r4 = ball_radius*4;
+      points = [
+            [0,0,0],
+            [r4,0,0]
+            ];
+    difference() {
+     union() {
+        difference() {
+          beholderLock_full(ball_radius);
+
+           rotate([0,beta/2,0])
+           rotate([0,0,60])
+           create_symmetric_tetrahedron(ball_radius*4,alpha*2,hole_size_mm/2);
+            
+           rotate([0,0,120])
+           rotate([0,beta/2,0])
+           rotate([0,0,60])
+           create_symmetric_tetrahedron(ball_radius*4,alpha*2,hole_size_mm/2);
+            
+          // This is approximately correct, but is probably wrong...
+          // I need to develop a more general roational system
+          // to have any chance to figuring this out.
+          // Note that this system also requires either that design 
+          // a new cap or do something else to design this.       
+           rotate([0,0,unzipping/2])
+           rotate([unzipping/2,-unzipping/2,0])
+           rotate([0,0,120])
+           color("blue")
+           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+           
+           // This is to produce a structure supporting the "right handed" tetrahelix as well.
+           rotate([0,0,-120])
+           rotate([0,0,unzipping/2])
+           rotate([unzipping/2,-unzipping/2,0])
+           rotate([0,0,120])
+           color("blue")
+           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+   
+        }
+           // Now I am attempting to create the rotors
+        
+        
+                 // We need a version of create_symmetric_tetrahedron
+        // that addis in the one_glusscon_rotor instead of ust a cylinder to cut out.
+           rotor_displacement = ball_radius+rotor_gap;
+           rotate([0,beta/2,0])
+           rotate([0,0,60])
+           create_symmetric_tetrahedron_mnt(ball_radius*4,alpha*2,hole_size_mm/2,rotor_displacement,true);
+   // In this call we only want to create two new rotors, so as to not overlap the 
+   // existing rotor.         
+           rotate([0,0,120])
+           rotate([0,beta/2,0])
+           rotate([0,0,60])
+           create_symmetric_tetrahedron_mnt(ball_radius*4,alpha*2,hole_size_mm/2,rotor_displacement,false);
+        
+
+        // This is approximately correct, but is probably wrong...
+          // I need to develop a more general roational system
+          // to have any chance to figuring this out.
+          // Note that this system also requires either that design 
+          // a new cap or do something else to design this.       
+           rotate([0,0,unzipping/2])
+           rotate([unzipping/2,-unzipping/2,0])
+           rotate([0,0,120])
+           color("blue")
+           Add_Mounts([[0,1]],points,ball_radius+rotor_gap);
+//           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+           
+           // This is to produce a structure supporting the "right handed" tetrahelix as well.
+           rotate([0,0,-120])
+           rotate([0,0,unzipping/2])
+           rotate([unzipping/2,-unzipping/2,0])
+           rotate([0,0,120])
+           color("green")
+//           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+           Add_Mounts([[0,1]],points,ball_radius+rotor_gap);
+      }
+   
+      
+   }  
+}
+
+module joint_assembly() {
+      color( "Purple") sphere(ball_radius);
+      tetrahelix_lock_full();
+}
 
 
 
@@ -945,7 +1178,13 @@ if (part_to_render == "all" || part_to_render == "tetrahelixcap")
    translate([-ball_radius*3,ball_radius,ball_radius*2])
    tetrahelix_cap();
 
+if (part_to_render == "all" || part_to_render == "assembly")
+   translate([0,0,0])
+   joint_assembly();
 
+if (part_to_render == "all" || part_to_render == "glussconmount")
+   translate([0,0,0])
+   glussconmount();
 
 
 
