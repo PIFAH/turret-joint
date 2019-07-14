@@ -1,5 +1,5 @@
 //    TurretJoint.scad
-//    Copyright 2015, Robert L. Read
+//    Copyright 2017, Robert L. Read
 
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -1122,10 +1122,20 @@ module tetrahelix_lock_full() {
            color("green")
 //           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
            Add_Mounts([[0,1]],points,ball_radius+rotor_gap);
-      }
-   
-      
-   }  
+           
+                     // This is just a water flow port...
+           rotate([15,0,0])
+           translate([0,0,ball_radius - rotor_gap/2])
+           cylinder(r = rotor_size_mm/2, rotor_gap*2+rotor_thickness);
+           rotate([-15,0],0)
+           translate([0,0,ball_radius - rotor_gap/2])
+           cylinder(r = rotor_size_mm/2, rotor_gap*2+rotor_thickness);       
+       }
+  
+            // This is just a water flow port...
+       translate([0,0,ball_radius - rotor_gap/2])
+       cylinder(r = 2*rotor_size_mm/3, h =ball_radius/3);    
+  }
 }
 
 module joint_assembly() {
