@@ -30,7 +30,7 @@
 // Some parameters for the Turret Joint
 
 // Part to print:
-part_to_render = "assembly"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount]
+part_to_render = "mounts"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount,mounts]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -900,7 +900,7 @@ module equilateral_rotor_disc() {
            difference() {
             cylinder(r=100,h=100,center=true);
                // how can this be related to the parameters?
-            fudge = 0.7;
+            fudge = 0.8;
             r = (rotor_size_mm)*fudge;
             cylinder(r=r,h=100,center=true);
            }
@@ -928,6 +928,29 @@ module one_glusscon_rotor() {
     Glusscon_mount(firgelli_pr_cw,firgelli_pr_sw,firgelli_pr_ch,firgelli_pr_cd,firgelli_pr_hole_center_offset);
 }
 
+// My attempt to make a nice rounded (centered) cylinder, possibly
+// as a contribution. rc is the radius of curvature of the corner.
+module rcyl(r,h,rc) {
+    if (r < rc*2) echo("radius of curvature of edge must be less than half radius");
+    if (h < rc*2) echo("radius of curvature of edge must be less than half height");
+    // create a union of a cylinder and an extruded donut...
+    union() {
+     linear_extrude(height = h-2*rc, convexity = 10,twist=0,center=true)
+      circle(r = r, $fn = 100); 
+  translate([0,0,(h/2 - rc)])      
+       rotate_extrude(convexity = 10)
+        translate([r-rc, 0, 0])
+       circle(r = rc, $fn = 100);
+  translate([0,0,-(h/2 - rc)])      
+       rotate_extrude(convexity = 10)
+        translate([r-rc, 0, 0])
+       circle(r = rc, $fn = 100);
+    cylinder(r1=r -rc,r2=r-rc,h,center=true);
+    }
+}
+
+
+
 // cw = cavity_width
 // sw = shell_width
 // ch = cavity height
@@ -947,13 +970,14 @@ module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
     
    postgap_fudge = 1.3;
     
-   current_width = 7/9; // This is based on the current way we are making the GlussCon;
+//   current_width = 7/9; // This is based on the current way we are making the GlussCon;
     // This is somewhat arbitray and will change when we fix the joint.
     
    postgap_buffer = 1.3;
    postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
    cup_pos = -((cd+sw)/2+(postgap));
    translate([-cup_pos+ + rotor_thickness,0,0])
+   scale([0.57,0.57,0.57])
    difference() {
      union() {
         // The spherical part of the rotor -- needs to cut with inverted tool!
@@ -963,15 +987,23 @@ module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
         // The connecting post
         translate([-((cd+sw)/2+(postgap))+-1,0,0])
         rotate([0,90,0])
-        cylinder(r=post_radius_mm,h=(postgap*postgap_fudge),center=false,$fn=20); 
+        cylinder(r=post_radius_mm,h=(postgap*postgap_fudge),center=false,$fn=40); 
         translate([-5,0,0])
         rotate([0,90,0])
-        difference() {
-          cylinder(r=con_post_radius*current_width, h = con_post_length);
-          translate([20,0,con_post_radius])
-          rotate([0,90,0])
-          translate([0,0,-con_post_length])
-          cylinder(r=con_post_radius/2, h = con_post_length*3,center=true);
+        union() {
+ //          rcyl(r=con_post_radius, h = con_post_length,rc=1,$fn=40);
+            difference() {
+//                cylinder(r=con_post_radius, h = con_post_length,$fn=40);
+                hl = con_post_length+7;
+                echo("con_post_radius",con_post_radius);
+                echo("length",hl);
+                translate([0,0,hl/2])
+                rcyl(r=con_post_radius, h = hl,rc=1,$fn=40);
+                translate([20,0,con_post_radius])
+                rotate([0,90,0])
+                translate([-6.5,0,-con_post_length])
+                cylinder(r=con_post_radius/2, h = con_post_length*3,center=true,$fn=40);
+            }
         }
     }
   }
@@ -1143,7 +1175,45 @@ module joint_assembly() {
       tetrahelix_lock_full();
 }
 
+module lowerPotSleeve() {  
+      import("../STLs/potslv_8.17.repaired.STL");
+//    import("../LowerPotMoreRoom.STL");
+}
 
+module upperPotSleeve() {
+    difference() {
+     import("../STLs/upperslv_8.17.STL");
+    }
+ //   import("../UpperPotMoreRoom.STL"");
+}
+
+
+if (part_to_render == "all" || part_to_render == "mounts") {
+    margin = 1.1;
+//    difference() {
+//        translate([-ball_radius*8+-2,-15,-ball_radius*3])
+//        lowerPotSleeve();  
+// //       translate([-8,0,0])      
+//        rotate([90,0,90])
+//        scale([0.57,0.57* margin,1.4])
+//        cylinder(r = 7.50575,h = 22.0115,center=true,$fn=40);
+//    }
+//    difference() {
+//        translate([-ball_radius*3-15,ball_radius+4,-ball_radius*3+16])
+//        upperPotSleeve();
+//        translate([0,37,0])
+//        rotate([90,0,90])
+//        scale([0.57,0.57* margin,1.4])
+//        cylinder(r = 7.50575,h = 22.0115,center=true,$fn=40);
+//    }
+    translate([0,15,0])
+    translate([10,0,0])
+    rotate([90,0,180])
+    glussconmount();
+//    translate([50,0,8])
+//    scale([0.57,0.57,0.57])
+//    tetrahelix_lock();  
+   }
 
 if (part_to_render == "all" || part_to_render == "demoturret")
    translate([-ball_radius*3,-ball_radius*6,0])
