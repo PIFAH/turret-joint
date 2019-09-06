@@ -964,9 +964,10 @@ module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
    d = ball_radius;
    fudge = 0.77;
 
-// These need to be accomplished in some reasonable way.    
-   con_post_radius = hole_size_mm/2;
-   con_post_length = con_post_radius*2;
+// These need to be accomplished in some reasonable way.
+   tolerance = 0.9;
+   con_post_radius = tolerance*hole_size_mm/2;
+   con_post_length = hole_size_mm;
     
    postgap_fudge = 1.3;
     
@@ -976,8 +977,9 @@ module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
    postgap_buffer = 1.3;
    postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
    cup_pos = -((cd+sw)/2+(postgap));
+    scale_constant_for_gc = 0.57;
    translate([-cup_pos+ + rotor_thickness,0,0])
-   scale([0.57,0.57,0.57])
+   scale([scale_constant_for_gc,scale_constant_for_gc,scale_constant_for_gc])
    difference() {
      union() {
         // The spherical part of the rotor -- needs to cut with inverted tool!
@@ -995,14 +997,17 @@ module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
             difference() {
 //                cylinder(r=con_post_radius, h = con_post_length,$fn=40);
                 hl = con_post_length+7;
-                echo("con_post_radius",con_post_radius);
+                echo("con_post_radius",con_post_radius*scale_constant_for_gc);
                 echo("length",hl);
                 translate([0,0,hl/2])
-                rcyl(r=con_post_radius, h = hl,rc=1,$fn=40);
+                rcyl(r=con_post_radius, h = hl,rc=3,$fn=40);
                 translate([20,0,con_post_radius])
                 rotate([0,90,0])
                 translate([-6.5,0,-con_post_length])
+//                cylinder(r=con_post_radius/2, h = con_post_length*3,center=true,$fn=40);
+
                 cylinder(r=con_post_radius/2, h = con_post_length*3,center=true,$fn=40);
+                echo("clevis pin diameter",con_post_radius*scale_constant_for_gc);
             }
         }
     }
@@ -1175,14 +1180,15 @@ module joint_assembly() {
       tetrahelix_lock_full();
 }
 
-module lowerPotSleeve() {  
-      import("../STLs/potslv_8.17.repaired.STL");
+
+module lowerhalfcutPotSleeve() {  
+      import("../STLs/9.5.5mm.cut_updated.STL");
 //    import("../LowerPotMoreRoom.STL");
 }
 
 module upperPotSleeve() {
     difference() {
-     import("../STLs/upperslv_8.17.STL");
+     import("../STLs/upperslv_9.5_updated.STL");
     }
  //   import("../UpperPotMoreRoom.STL"");
 }
@@ -1191,12 +1197,14 @@ module upperPotSleeve() {
 if (part_to_render == "all" || part_to_render == "mounts") {
     margin = 1.1;
 //    difference() {
-//        translate([-ball_radius*8+-2,-15,-ball_radius*3])
-//        lowerPotSleeve();  
+           translate([-3,0,0])
+       rotate([0,0,180])
+       translate([-ball_radius*8+5,-17,-ball_radius*3])
+        lowerhalfcutPotSleeve();  
 // //       translate([-8,0,0])      
-//        rotate([90,0,90])
-//        scale([0.57,0.57* margin,1.4])
-//        cylinder(r = 7.50575,h = 22.0115,center=true,$fn=40);
+////        rotate([90,0,90])
+////        scale([0.57,0.57* margin,1.4])
+////        cylinder(r = 7.50575,h = 22.0115,center=true,$fn=40);
 //    }
 //    difference() {
 //        translate([-ball_radius*3-15,ball_radius+4,-ball_radius*3+16])
@@ -1206,10 +1214,12 @@ if (part_to_render == "all" || part_to_render == "mounts") {
 //        scale([0.57,0.57* margin,1.4])
 //        cylinder(r = 7.50575,h = 22.0115,center=true,$fn=40);
 //    }
-    translate([0,15,0])
-    translate([10,0,0])
-    rotate([90,0,180])
+//    translate([0,-15,0])
+    translate([-20,0,0])
+    rotate([90,0,0])
     glussconmount();
+//    upperPotSleeve();
+//    lowerhalfcutPotSleeve();
 //    translate([50,0,8])
 //    scale([0.57,0.57,0.57])
 //    tetrahelix_lock();  
