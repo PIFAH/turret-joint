@@ -1182,13 +1182,13 @@ module joint_assembly() {
 
 
 module lowerhalfcutPotSleeve() {  
-      import("../STLs/9.5.5mm.cut_updated.STL");
+      import("../STLs/lower sleeve 9.8.STL");
 //    import("../LowerPotMoreRoom.STL");
 }
 
 module upperPotSleeve() {
     difference() {
-     import("../STLs/upperslv_9.5_updated.STL");
+     import("../STLs/lower sleeve 9.8.STL");
     }
  //   import("../UpperPotMoreRoom.STL"");
 }
@@ -1215,7 +1215,7 @@ if (part_to_render == "all" || part_to_render == "mounts") {
 //        cylinder(r = 7.50575,h = 22.0115,center=true,$fn=40);
 //    }
 //    translate([0,-15,0])
-    translate([-20,0,0])
+    translate([-22,0,0])
     rotate([90,0,0])
     glussconmount();
 //    upperPotSleeve();
