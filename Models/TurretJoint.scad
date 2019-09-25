@@ -30,7 +30,7 @@
 // Some parameters for the Turret Joint
 
 // Part to print:
-part_to_render = "mounts"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount,mounts]
+part_to_render = "tetrahelixlock"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount,mounts]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -103,6 +103,8 @@ firgelli_st_cd = 8;
 firgelli_st_hole_center_offset = 2.0; // offset from center of main body for drill hole
 
 firgelli_hole_fit_fudge_factor = 0.8;
+
+$fn = 100;
 
 module fake_module_so_customizer_does_not_show_computed_values() {
 }
@@ -725,7 +727,7 @@ module tetrahelix_cap() {
         difference() {  
            rotate([180,0,0])        
            union() {  
-                beholderBall(ball_radius);
+                beholderBall_full(ball_radius);
               tetrahelix_cap_cut();
             }
             translate([0,0,ball_radius/2+seam_height])
@@ -1262,13 +1264,19 @@ if (part_to_render == "all" || part_to_render == "firgellistator")
     translate([30,ball_radius*2,0])
     one_Firgelli_Stator_rotor();
 
+scale_constant_for_gc = 0.57;
+
 if (part_to_render == "all" || part_to_render == "tetrahelixlock")
  //  translate([-ball_radius*3,ball_radius,0])
+    scale([scale_constant_for_gc,scale_constant_for_gc,scale_constant_for_gc])
    tetrahelix_lock();
 //   tetrahelix_cap();
 
+
+
 if (part_to_render == "all" || part_to_render == "tetrahelixcap")
-   translate([-ball_radius*3,ball_radius,ball_radius*2])
+//   translate([-ball_radius*3,ball_radius,ball_radius*2])
+    scale([scale_constant_for_gc,scale_constant_for_gc,scale_constant_for_gc])
    tetrahelix_cap();
 
 if (part_to_render == "all" || part_to_render == "assembly")
