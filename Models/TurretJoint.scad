@@ -29,8 +29,10 @@
 
 // Some parameters for the Turret Joint
 
+include <threads.scad>;
+
 // Part to print:
-part_to_render = "tetrahelixlock"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount,mounts]
+part_to_render = "robotrotor"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount,mounts, statormountfem,robotrotor]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -925,9 +927,13 @@ module one_Firgelli_Stator_rotor() {
       Firgelli_mount(firgelli_st_cw,firgelli_st_sw,firgelli_st_ch,firgelli_st_cd,firgelli_st_hole_center_offset);
 }
 
+module one_Firgelli_Stator_rotor_new() {
+      Firgelli_mount_stator(firgelli_st_cw,firgelli_st_sw,firgelli_st_ch,firgelli_st_cd,firgelli_st_hole_center_offset);
+}
+
 
 module one_glusscon_rotor() {
-    Glusscon_mount(firgelli_pr_cw,firgelli_pr_sw,firgelli_pr_ch,firgelli_pr_cd,firgelli_pr_hole_center_offset);
+    UniversalRotor(firgelli_pr_cw,firgelli_pr_sw,firgelli_pr_ch,firgelli_pr_cd,firgelli_pr_hole_center_offset);
 }
 
 // My attempt to make a nice rounded (centered) cylinder, possibly
@@ -959,10 +965,60 @@ module rcyl(r,h,rc) {
 // cd = cavity_depth
 // Note: These should be printed, hoziontally, not vertically!
 module glussconmount() {
-    Glusscon_mount(firgelli_pr_cw,firgelli_pr_sw,firgelli_pr_ch,firgelli_pr_cd,firgelli_pr_hole_center_offset);
+    UniversalRotor(firgelli_pr_cw,firgelli_pr_sw,firgelli_pr_ch,firgelli_pr_cd,firgelli_pr_hole_center_offset);
 }
 
-module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
+module female_mount() {
+   d = ball_radius;
+   fudge = 0.77;
+
+// These need to be accomplished in some reasonable way.
+   tolerance = 0.9;
+   con_post_radius = tolerance*hole_size_mm/2;
+   con_post_length = hole_size_mm;
+    
+   postgap_fudge = 1.3;
+    
+//   current_width = 7/9; // This is based on the current way we are making the GlussCon;
+    // This is somewhat arbitray and will change when we fix the joint.
+    
+   postgap_buffer = 1.3;
+   postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
+   cup_pos = -((cd+sw)/2+(postgap));
+   translate([0,0,27.0])
+   rotate([180,0,0])
+   difference() {
+     union() {
+        hl = con_post_length+7;
+        rcn = 3;
+
+        difference() {
+                color("red") 
+                translate([0,0,rcn+hl/2])
+                rcyl(r=con_post_radius*1.5, rc= rcn,h = hl+5,$fn=80);
+                color("green")
+                translate([0,0,-1])
+                cylinder(r=con_post_radius*1.1, h = hl+3,rc=0,$fn=80); 
+         }  
+//         translate([0,0,0])
+//         difference() {
+//            translate([0,0,hl/2])
+//            rcyl(r=con_post_radius, h = hl,rc=3,$fn=40);
+//            translate([20,0,con_post_radius])
+//           rotate([0,90,0])
+//            translate([-6.5,0,-con_post_length])
+//            cylinder(r=con_post_radius/2, h = con_post_length*3,center=true,$fn=40);
+ //        }
+     }
+     color("blue")
+     translate([20,0,con_post_radius])
+     rotate([0,90,0])
+     translate([-6.5,0,-con_post_length])
+     cylinder(r=con_post_radius/2, h = con_post_length*3,center=true,$fn=40);
+  }
+}
+
+module UniversalRotor(cw,sw,ch, cd,hole_center_distance) {
    d = ball_radius;
    fudge = 0.77;
 
@@ -981,7 +1037,7 @@ module Glusscon_mount(cw,sw,ch, cd,hole_center_distance) {
    cup_pos = -((cd+sw)/2+(postgap));
     scale_constant_for_gc = 0.57;
    translate([-cup_pos+ + rotor_thickness,0,0])
-   scale([scale_constant_for_gc,scale_constant_for_gc,scale_constant_for_gc])
+
    difference() {
      union() {
         // The spherical part of the rotor -- needs to cut with inverted tool!
@@ -1041,6 +1097,52 @@ module Firgelli_mount(cw,sw,ch, cd,hole_center_distance) {
         translate([-((cd+sw)/2+(postgap))+-1,0,0])
         rotate([0,90,0])
         cylinder(r=post_radius_mm,h=(postgap*postgap_fudge),center=false,$fn=20); 
+        difference() {
+        
+     // construct the shell
+          cube([cd+sw,cw+sw,ch+sw],center=true);
+     // construct the cavity
+          union() {
+            // the real cavity
+            cube([cd,cw,ch],center=true);
+            // cleanup
+            translate([3,0,0])
+              cube([cd+4,cw,ch],center= true );
+          }
+       // drill out the holes
+          translate([hole_center_distance,0,0])
+          rotate([90,0,0])
+          cylinder(r = 2.25+.2, h=ball_radius, center= true,$fn=20);
+      }
+    }
+// now we subtract the rotor hole size to make sure it fits!!
+    translate([-(cd+sw*2)/2,0,0])
+    rotate([0,90,0])
+    difference() {
+      cylinder(r = rotor_size_mm, h = (cd+sw*2)*1.1);
+      cylinder(r = (rotor_size_mm/2)*firgelli_hole_fit_fudge_factor, h = (cd+sw*2) *1.2);
+    }
+  }
+}
+
+
+
+// cw = cavity_width
+// sw = shell_width
+// ch = cavity height
+// cd = cavity_depth
+// Note: These should be printed, hoziontally, not vertically!
+module Firgelli_mount_stator(cw,sw,ch, cd,hole_center_distance) {
+   d = ball_radius;
+   fudge = 0.77;
+    
+   postgap_fudge = 1.3;
+    
+   postgap_buffer = 1.3;
+   postgap = (lock_thickness+rotor_gap*2)*postgap_buffer;
+    
+   difference() {
+     union() {
         difference() {
         
      // construct the shell
@@ -1177,6 +1279,178 @@ module tetrahelix_lock_full() {
   }
 }
 
+
+// Modifications by Robert L. Read, 2016
+
+// magnet dimensions:
+
+// For 1/2" long and 1/4" in diameter:
+// mag_d=(25.4/4)+1.0; // adding 1 mm for easier insertion.
+// mag_h=25.4/2 + 0.5; // adding a fudge to slight it in easier.
+
+// For 1" long and 1/2" in diameter:
+mag_d=(25.4/2)+2.0; // adding 2 mm for easier insertion.
+mag_h=25.4/1 + 1.5; // adding a fudge to slide it in easier.
+
+wire_hole_diameter = 4.0; 
+// mag_d=12; // magnet diam
+// mag_h=3;  // magnet height
+
+// magnet holder dimensions:
+// lip_t=1;  // lip thickness of the cup that holds the magnet
+// Rob will try half this:
+lip_t = 1.7;
+lip_h = 1.0;
+
+// coupler dimensions:
+coupler_d  = 25; // coupler diameter at the mid section (where glued together)
+coupler_h  = mag_h+5; // coupler height of each half
+actuator_h = 16;
+head_depth = 12; // actuator head depth into coupler
+
+// actuator dimensions:
+//   see actuator_head_and_bolt module
+bolt_l = 35; // overly generous bolt length
+
+// global resolution
+$fs = 0.2;  // Don't generate smaller facets than 0.1 mm
+$fa = 10;    // Don't generate larger angles than 5 degrees
+
+// head and bolt - with the actuator standing on end, aligned on the z-axis,
+//                 resting its extreme end on the x-y plane, and
+//                 its bolt is positioned above and parallel the y-axis
+//            
+// hx  - head_x (width)
+// hy  - head_y (thickness) 
+// hz  - head_z (height)
+// bd  - bolt_diameter
+// b2e - bolt_to_end (edge of bolt hole to end of the actuator)
+// bl  - bolt_length
+module head_and_bolt(hx,hy,hz,bd,b2e,bl=bolt_l) {
+  translate([-hx/2,-hy/2,0])  
+  cube([hx,hy,hz]);
+  
+  translate([0,0,b2e+bd/2])  
+    rotate([90,0,0])
+      cylinder(d=bd,h=bl,center=true);
+}
+
+// defines each types of actuator head
+module actuator_head_and_bolt(type)
+{
+    hz = 30;
+  if (type=="pushrod")
+ //   head_and_bolt(hx=9.5,hy=6, hz=hz, bd=4.5, b2e=4);
+    head_and_bolt(hx=8.5,hy=7, hz=hz, bd=4.5, b2e=4);
+  else if (type=="stator")
+    head_and_bolt(hx=11, hy=9, hz=hz, bd=4.5, b2e=5);
+  else
+    echo("BAD ACTUATOR TYPE");
+}
+
+// bd = base diameter
+// ch = coupler height
+// type = "pushrod" or "stator"
+// hd = head depth
+module actuator_connector(bd, ch, type, hd)
+{
+    hz = 30;
+    pushrod_diameter = 9;
+  difference() {
+  difference() {
+    // cylinder(h=ch, d1=bd, d2=16);
+    cylinder(h=ch, d1=18, d2=18);
+    translate([0,0,ch-hd])  
+      actuator_head_and_bolt(type);
+  }
+ if (type=="pushrod") 
+     // we want to cut an additional cylinder to make room
+    translate([0,0,ch-3])
+  // adding fudge factor
+    cylinder(h=ch,d=pushrod_diameter);
+  else if (type=="stator")
+  // This is creating a problem for simplify3d for some unknown reason
+    translate([12,0,(ch/2)+(ch-5)])
+   cube([11,11,ch+10],center=true);
+  else
+    echo("BAD ACTUATOR TYPE");
+  }
+}
+
+// bd = base diameter
+// ch = coupler height
+// md = magnet diameter
+// lt = lip thickness
+module magnet_connector(bd, ch, md, lt)
+{
+  difference() {
+    cylinder(h=ch, d1=bd, d2=md+2*lt);
+//    union() {
+//      translate([0,0,-lt])  
+//        cylinder(h=ch, d=md);
+//      translate([0,0,-2*lt])  
+//        cylinder(h=ch+3*lt, d=md-2*lt);
+//    }  
+      union() {
+      translate([0,0,-lip_h])  
+        cylinder(h=ch, d=md);
+      translate([0,0,-2*lip_h])  
+        cylinder(h=ch+3*lip_h, d=md-2*lt);
+    }  
+      
+  }
+}
+
+// bd = base diameter
+// ch = coupler height
+// md = magnet diameter
+// lt = lip thickness
+module magnet_connector_side_cut(bd, ch, md, mh, lt)
+{
+    displace = 2;
+  difference() {
+      union() {
+      magnet_connector(bd,ch,md,lt);
+          // Adding in side flanges for stronger wiring in
+          // of the magnet.
+      translate([0,displace + bd/4,ch*1/2])
+      rotate([0,90,0]) // lay it on its side...
+      translate([0,0,-md*0.7]) // center...
+      cylinder(h=md*1.4,d=wire_hole_diameter*3);
+      }
+      
+      // cut the slide hole....
+      translate([0,md,(mh-1)/2 ])
+      cube([md,md*2,mh+1],center=true);
+// now cut a small hole that we can jam a steel wire through (like a twist tie).
+      translate([0,displace+bd/4,ch*1/2])
+      rotate([0,90,0]) // lay it on its side...
+      translate([0,0,-md*5]) // center...
+      cylinder(h=md*10,d=wire_hole_diameter);
+  }
+}
+
+
+// ch = coupler height
+// md = magnet diameter
+// mh = magnet height (thickness)
+module magnet_plug(ch, md, mh)
+{
+  cylinder(d=md, h=ch-mh);   
+}
+
+// ------------------------
+// default connector pieces
+// ------------------------
+
+module def_stator_connector()
+{
+  actuator_connector(bd=coupler_d, ch=actuator_h, type="stator", hd=head_depth);
+}
+
+
+
+
 module joint_assembly() {
       color( "Purple") sphere(ball_radius);
       tetrahelix_lock_full();
@@ -1285,7 +1559,36 @@ if (part_to_render == "all" || part_to_render == "assembly")
 
 if (part_to_render == "all" || part_to_render == "glussconmount")
    translate([0,0,0])
+   scale([scale_constant_for_gc,scale_constant_for_gc,scale_constant_for_gc])
    glussconmount();
+
+if (part_to_render == "all" || part_to_render == "robotrotor")
+   translate([-20,0,0])
+   glussconmount();
+
+if (part_to_render == "all" || part_to_render == "screwmountfem")
+    union() {
+   translate([0,0,0])
+   female_mount();
+   translate([0,0,-9.5])
+   metric_thread (diameter=7.5, pitch=1, length=10);
+    };
+
+if (part_to_render == "all" || part_to_render == "statormountfem")
+    union() {
+   translate([0,0,0])
+   female_mount();
+   translate([0,0,3])
+   rotate([0,180,0])
+   def_stator_connector();
+    }
+//   one_Firgelli_Stator_rotor_new();    
+
+
+
+
+
+
 
 
 
