@@ -32,7 +32,7 @@
 include <threads.scad>;
 
 // Part to print:
-part_to_render = "robotrotor"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount,mounts, statormountfem,robotrotor]
+part_to_render = "display"; // [all, demoturret, rotor, cap, ninecap,lock, ball, tubemount, firgellipushrod, firgellistator, tetrahelixlock, tetrahelixcap,assembly,glussconmount,mounts, statormountfem,robotrotor,display]
 
 symmetric_or_tetrahedral = "symmetric"; // [symmetric,tetrahedral]
 
@@ -1570,8 +1570,8 @@ if (part_to_render == "all" || part_to_render == "screwmountfem")
     union() {
    translate([0,0,0])
    female_mount();
-   translate([0,0,-9.5])
-   metric_thread (diameter=7.5, pitch=1, length=10);
+   translate([0,0,-7])
+   metric_thread (diameter=7.5, pitch=1.25, length=7.5);
     };
 
 if (part_to_render == "all" || part_to_render == "statormountfem")
@@ -1582,7 +1582,15 @@ if (part_to_render == "all" || part_to_render == "statormountfem")
    rotate([0,180,0])
    def_stator_connector();
     }
-//   one_Firgelli_Stator_rotor_new();    
+//   one_Firgelli_Stator_rotor_new();  
+  
+if (part_to_render == "all" || part_to_render == "display")
+    union() {
+   translate([0,0,0])
+        tetrahelixcap();
+        tetrahelixlock();
+        ball();
+    }  
 
 
 
