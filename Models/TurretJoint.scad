@@ -46,7 +46,7 @@ ball_radius = 25.0;
 // The thickness of the moving "rotors"
 rotor_thickness = 2.5; 
 // The thickness of the locking shell
-lock_thickness = 2.5; 
+lock_thickness = 4; 
 // a tolerance space to allow motion
 rotor_gap = 0.75; 
 
@@ -142,7 +142,13 @@ radius_at_rotor_inner_edge = ball_radius+rotor_gap;
 radius_at_lock_inner_edge = ball_radius+rotor_thickness+2*rotor_gap;
 outermost_radius = radius_at_rotor_outer_edge + lock_thickness;
 
+// A lot depends on the hole_size, some of which we 
+// want to change, some of which we don't
 hole_size_mm = radius_at_lock_inner_edge*2.0*sin(hole_angle/2);
+actual_hole_size_mm = 16.5;
+echo("hole_size_mm");
+echo(hole_size_mm);
+
 
 
 
@@ -161,8 +167,10 @@ echo(rotor_hole_angle);
 // This code came from "Andrei" http://forum.openscad.org/Cylinders-td2443.html
 
 module cylinder_ep(p1, p2, r1, r2) {
-translate(p1)sphere(r=r1,center=true);
-translate(p2)sphere(r=r2,center=true);
+translate(p1)
+    sphere(r=r1);
+translate(p2)
+    sphere(r=r2);
 vector = [p2[0] - p1[0],p2[1] - p1[1],p2[2] - p1[2]];
 distance = sqrt(pow(vector[0], 2) + pow(vector[1], 2) + pow(vector[2], 2));
     
@@ -245,97 +253,6 @@ module Add_Mounts(edges,points,rotor_displacement,render_first) {
     }
 }
 
-// The purpose here is to produce a matching part that mates to 
-// our rotor pegs for mounting a rod (like a carbon-fiber rod with a 
-// 1/4" interior diameter, for example).
-// This is a sloppy, ugly function --- I did this very hastily.
-module six_hole_clevis() {
-    p0 = [0,0,0];
-    p1 = [100,0,0];
-    width = hole_size_mm*0.8;
-    depth = post_radius_mm*2;
-    height = mounting_clevis_height;
-    tolerance = .2;
-    // This is for my particular carbon fiber connector rod, this really needs to be parametrized.
-    difference() {
-        union () {
-             translate([0,depth+tolerance,0])
-            color("gray") six_hole_box_ep(p0, p1, 0.0, width, depth, height, $fn=20);  
-             translate([0,-depth+-tolerance,0])
-           color("gray") six_hole_box_ep(p0, p1, 0.0, width, depth, height, $fn=20);  
-                translate([-height*.81 + - depth/2,0,0])
-            difference() {
-            cube([depth*5,depth*3,depth*3],center=true);
-                translate([depth*4.5,0,0])
-                cube([depth*5,depth+tolerance*3,depth*4],center=true);
-            }
-        }
-   
-        translate([-height*1.4,0,0])
-        rotate([0,90,0])
-        difference() {
-            // These are measured numbers in mm, but my STL is 4 times too big! Need to 
-            // clean this up.
-        color("blue") cylinder(h = depth*4,r = 4.5);
-        color("red") cylinder(h = depth*4,r = 3);
-        }
-
-    }
-}
-
-// The purpose here is to produce a matching part that mates to 
-// our rotor pegs for mounting a rod (like a carbon-fiber rod with a 
-// 1/4" interior diameter, for example).
-// This is a sloppy, ugly function --- I did this very hastily.
-module tubular_mount(outer_radius,inner_radius) {
-    width = hole_size_mm;
-    depth = width*2;
-    postgap = lock_thickness+rotor_gap*2;
-    fudge = 0.75;
-    conjoin = 1.0; // This is a little fudge factor to make sure we have full connectivity
-    
-    // This is for my particular carbon fiber connector rod, this really needs to be parametrized.  
-  difference() {  
-   union() { 
-//    translate([ball_radius+depth/2+postgap+lock_thickness,0,0])
- //   translate([4,0,0])
-    translate([depth/2+postgap,0,0])
-    rotate([0,90,0])
-    rotor_disc();
-    // The post
- 
-    translate([depth/2,0,0])
-    rotate([0,90,0])
-    cylinder(r=post_radius_mm,h=(postgap+conjoin),center=false,$fn=20); 
-        
-    difference() {
-        cube([depth,width,width],center=true);
-        translate([-depth/1.5,0,0])
-        rotate([0,90,0])
-        difference() {
-        color("blue") cylinder(h = depth,r = outer_radius,$fn=20);
-        color("red") cylinder(h = depth,r = inner_radius,$fn=20);
-        }
-
-    }
-   }
-    // now we subtract the rotor hole size to make sure it fits!!
-   rotate([0,90,0])
-    difference() {
-     cylinder(r = rotor_size_mm, h = depth*1.1,center=true,$fn=20);
-     cylinder(r = (rotor_size_mm/2)*fudge, h = depth *1.2,center=true,$fn=20);
-   }
-   // now we subtract 3 #2 mounting holes - 2.032 mm!
-   cylinder(r = 2.032/2, h = depth, $fn=20,center = true);
-//   translate([depth/4,0,0])
-//   cylinder(r = 2.032/2, h = depth, $fn=20,center = true);
-      translate([-depth*0.3,0,0])
-   rotate([90,0,0])
-   cylinder(r = 2.032/2, h = depth, $fn=20,center = true);
-   
-
-   }
-}
 
 module beamify_edges(edges,points,width,depth,height) {
     for(e = edges) {
@@ -435,6 +352,7 @@ module beholderBall(d) {
 }
 }
 
+
 module beholderBall_full(d) {
     difference() {
     union() {
@@ -512,24 +430,38 @@ module flange_capture() {
       translate([radius_at_rotor_outer_edge+lock_thickness,0,-post_radius_mm*2+-post_radius_mm])
     cylinder(r = nut_size,h = post_radius_mm*2,$fn=20);
 }
-
+first_radial_offset = 20;
+second_radial_offset = 20;
 module flange_capture_cut_tool() {
     radius = hole_size_mm*0.6;
     displacement = 0.4;
-    flange_capture(radius,displacement);
-    rotate([0,0,120])
-    flange_capture(radius,displacement);
-    rotate([0,0,240])
-    flange_capture(radius,displacement);
+    color("red")
+    rotate([0,0,0])
+    flange_capture();
+    
+    color("green")
+    rotate([0,0,120+first_radial_offset])
+    flange_capture();
+    
+    color("blue")
+    rotate([0,0,240+second_radial_offset])
+    flange_capture();
 }
 
 module bolting_flanges() {
     radius = hole_size_mm*0.6;
     displacement = 0.4;
+
+    rotate([0,0,0])
+    color("red")
     bolting_flange(radius,displacement);
-    rotate([0,0,120])
+    
+    rotate([0,0,120+first_radial_offset])
+    color("green")
     bolting_flange(radius,displacement);
-    rotate([0,0,240])
+    
+    rotate([0,0,240+second_radial_offset])
+    color("blue")
     bolting_flange(radius,displacement);
 }
 
@@ -554,14 +486,17 @@ module tetrahedronal_lock() {
     union() {
     difference() {
         beholderLock(ball_radius);
-        equilateral_cut_tool_for_shell(hole_size_mm/2);
+        equilateral_cut_tool_for_shell(actual_hole_size_mm/2);
 
         // Now we will attempt to make the other cut outs...
         // These should split the angles of the tetrahedron...
         // So they should be rotate 30 degrees from the x-axis
        snowflake_planar_cut_tool();
     }
-    color("green") bolting_flanges();
+    rotation_offset = 0;
+    rotate([0,0,0])
+    bolting_flanges();
+    rotate([0,0,rotation_offset])
     color("blue") apical_flange();
     }
     // now cut away room for "nut capture" of the bolting flanges.
@@ -611,6 +546,7 @@ edges = [
 
 // At present this a left-handed, (ccw) helix.
 // I am going to make it bi-handed by adding another hole!
+rotation_offset = -15;
 module tetrahelix_lock() {
     beta = acos(1/3);
     alpha = (180 - beta)/2;
@@ -619,6 +555,7 @@ module tetrahelix_lock() {
     echo(alpha);
     unzipping = 7.356105;
     r4 = ball_radius*4;
+
     difference() {
       union() {
         difference() {
@@ -626,12 +563,12 @@ module tetrahelix_lock() {
 
            rotate([0,beta/2,0])
            rotate([0,0,60])
-           create_symmetric_tetrahedron(ball_radius*4,alpha*2,hole_size_mm/2);
+           create_symmetric_tetrahedron(ball_radius*4,alpha*2,actual_hole_size_mm/2);
             
            rotate([0,0,120])
            rotate([0,beta/2,0])
            rotate([0,0,60])
-           create_symmetric_tetrahedron(ball_radius*4,alpha*2,hole_size_mm/2);
+           create_symmetric_tetrahedron(ball_radius*4,alpha*2,actual_hole_size_mm/2);
             
             
             points = [
@@ -649,24 +586,30 @@ module tetrahelix_lock() {
            rotate([0,0,120])
            color("blue")
  
-           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+           cylindricalize_edges([[0,1]],points,actual_hole_size_mm/2);
            
-           // This is to produce a structure supporting the "right handed" tetrahelix as well.
-           rotate([0,0,-120])
-           rotate([0,0,unzipping/2])
-           rotate([unzipping/2,-unzipping/2,0])
-           rotate([0,0,120])
-           color("green")
-           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+ //          // This is to produce a structure supporting the "right handed" tetrahelix as well.
+ //          rotate([0,0,-120])
+ //          rotate([0,0,unzipping/2])
+ //          rotate([unzipping/2,-unzipping/2,0])
+ //          rotate([0,0,120])
+  //         color("green")
+ //          cylindricalize_edges([[0,1]],points,hole_size_mm/2);
    
         }
-        rotate([0,0,90])
-      color("green") bolting_flanges();
-      color("blue") apical_flange();
+
+
+        rotate([0,0,rotation_offset])
+        union() {
+         rotate([0,0,90])
+        bolting_flanges();
+        color("blue") apical_flange();
+        }
       }
     // now cut away room for "nut capture" of the bolting flanges.
     // probably could solve this problem better by making the flanges larger,
     // but then my existing pieces would not fit
+              rotate([0,0,rotation_offset])
      rotate([0,0,90])
     flange_capture_cut_tool();
    }  
@@ -680,6 +623,7 @@ module tetrahelix_cap_cut() {
     echo(alpha);
     unzipping = 7.356105;
     r4 = ball_radius*4;
+    fixed_offset = -60;
     difference() {
       union() {
         difference() {
@@ -698,19 +642,23 @@ module tetrahelix_cap_cut() {
            rotate([0,-unzipping/2,0])
            rotate([0,0,120])
            color("blue")
-           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+           cylindricalize_edges([[0,1]],points,actual_hole_size_mm/2);
             
-           rotate([0,0,120])
-           rotate([0,0,60+-unzipping/2])
-           rotate([0,-unzipping/2,0])
-           rotate([0,0,120])
-           color("blue")
-           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+//           rotate([0,0,120])
+//           rotate([0,0,60+-unzipping/2])
+//           rotate([0,-unzipping/2,0])
+//           rotate([0,0,120])
+//           color("blue")
+//           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
         }
-        rotate([0,0,90])
-      color("green") bolting_flanges();
+        rotate([0,0,fixed_offset+-rotation_offset])
+        translate([0,0,1+-lock_thickness])
+        rotate([0,180,90])
+        bolting_flanges();
       }
-     rotate([0,0,90])
+     rotate([0,0,fixed_offset+-rotation_offset])
+     translate([0,0,-lock_thickness*3])
+     rotate([0,180,90])
     flange_capture_cut_tool();
    }  
 }
@@ -723,7 +671,11 @@ module tetrahelix_cap() {
     seam_height_factor = 2.5;
     seam_height = (hole_size_mm/2)*seam_height_factor;
     // Pythagorean theorem
-    cap_radius = sqrt(outermost_radius* outermost_radius - seam_height*seam_height);
+    cap_radius_comp = sqrt(outermost_radius* outermost_radius - seam_height*seam_height);
+    // make radius just a hair thinner...
+    cap_radius = cap_radius_comp - 0.6;
+    echo("cap_radius");
+    echo(cap_radius);
     rotate([0,0,-60]) 
     union() {
         difference() {  
@@ -732,9 +684,11 @@ module tetrahelix_cap() {
                 beholderBall_full(ball_radius);
               tetrahelix_cap_cut();
             }
-            translate([0,0,ball_radius/2+seam_height])
-                cylinder(r = ball_radius * 2, h = ball_radius,center = true);
+            // we no longer want this cut
+  //          translate([0,0,ball_radius/2+seam_height])
+  //              cylinder(r = ball_radius * 2, h = ball_radius,center = true);
         }
+        // This serves to "join" the ball to the cap...
        translate([0,0,seam_height])
         cylinder(r = cap_radius, h = lock_thickness,center = true);
     }
@@ -783,7 +737,7 @@ module three_hole_cap_lock() {
         }
         translate([0,0,seam_height])
         cylinder(r = cap_radius, h = lock_thickness,center = true);
-        color("green") bolting_flanges();
+        bolting_flanges();
     }
 }
 
@@ -1218,12 +1172,12 @@ module tetrahelix_lock_full() {
            cylindricalize_edges([[0,1]],points,hole_size_mm/2);
            
            // This is to produce a structure supporting the "right handed" tetrahelix as well.
-           rotate([0,0,-120])
-           rotate([0,0,unzipping/2])
-           rotate([unzipping/2,-unzipping/2,0])
-           rotate([0,0,120])
-           color("blue")
-           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
+//           rotate([0,0,-120])
+//           rotate([0,0,unzipping/2])
+//           rotate([unzipping/2,-unzipping/2,0])
+//           rotate([0,0,120])
+ //          color("blue")
+ //          cylindricalize_edges([[0,1]],points,hole_size_mm/2);
    
         }
            // Now I am attempting to create the rotors
@@ -1256,13 +1210,13 @@ module tetrahelix_lock_full() {
 //           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
            
            // This is to produce a structure supporting the "right handed" tetrahelix as well.
-           rotate([0,0,-120])
-           rotate([0,0,unzipping/2])
-           rotate([unzipping/2,-unzipping/2,0])
-           rotate([0,0,120])
-           color("green")
+ //          rotate([0,0,-120])
+ //          rotate([0,0,unzipping/2])
+ //          rotate([unzipping/2,-unzipping/2,0])
+ //          rotate([0,0,120])
+ //          color("green")
 //           cylindricalize_edges([[0,1]],points,hole_size_mm/2);
-           Add_Mounts([[0,1]],points,ball_radius+rotor_gap);
+//           Add_Mounts([[0,1]],points,ball_radius+rotor_gap);
            
                      // This is just a water flow port...
            rotate([15,0,0])
@@ -1314,7 +1268,7 @@ bolt_l = 35; // overly generous bolt length
 
 // global resolution
 $fs = 0.2;  // Don't generate smaller facets than 0.1 mm
-$fa = 10;    // Don't generate larger angles than 5 degrees
+// $fa = 10;    // Don't generate larger angles than 5 degrees
 
 // head and bolt - with the actuator standing on end, aligned on the z-axis,
 //                 resting its extreme end on the x-y plane, and
@@ -1586,10 +1540,13 @@ if (part_to_render == "all" || part_to_render == "statormountfem")
   
 if (part_to_render == "all" || part_to_render == "display")
     union() {
-   translate([0,0,0])
-        tetrahelixcap();
-        tetrahelixlock();
-        ball();
+   translate([0,0,15]) 
+        tetrahelix_cap();
+        tetrahelix_lock();
+        rotate([0,8,120])
+        translate([24,0,0])
+        color("red")
+        glussconmount();
     }  
 
 
