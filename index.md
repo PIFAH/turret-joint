@@ -26,8 +26,8 @@ so you are free to practice anything presented at this site. However, it would b
 
 ## More Views of the Design
 
-Perhas the easiest way to visualize the design is to use the "customizer" feature of our open-source published files at [Thingiverse](http://www.thingiverse.com/thing:1043716). Open my "thing" for the Turret Joint and click "Open in Customizer".
-The Customizer allows you to create 3D-printed files directly for down load and printing.  However, it is not entirely up-to-date at te time of this writing. 
+Perhaps the easiest way to visualize the design is to use the "customizer" feature of our open-source published files at [Thingiverse](http://www.thingiverse.com/thing:1043716). Open my "thing" for the Turret Joint and click "Open in Customizer".
+The Customizer allows you to create 3D-printed files directly for download and printing.  However, it is not entirely up-to-date at the time of this writing. 
 
 
 But the joint must allow for motion.  In particular, in a Gluss model, it must support the widest and narrowest angle which 
@@ -53,7 +53,7 @@ which is critical for proving that it will work with the gluss concept.
 In the context of a a "gluss" robot, we seek a joint that supports the maximum flexibility of our actuators. We can describe any
 given actuator with a number, Q, which is the ratio of the fully extended linear actuator to the fully retracted linear actuator.
 In the case of the Firgelli L16 actuators that we actually use, the Q is about 1.5. Basically, the higher Q is the more
-eccentricty (acuteness) we have to be able to handle.
+eccentricity (acuteness) we have to be able to handle.
 
 <img width="80%" src="./images/TurrentJointPieces.png">
 
@@ -65,8 +65,8 @@ acute.
 
 The turret joint does not allow infinite rotation. Each member can move about 30 degrees.  It is therefore incumbent upon us to partially match the geometry of the holes to the intended application.
 
-Altough you may modify the OpenScad file that generates all of the parts to generate any custom gemomety you need, it is useful to conisder the two most regular
-geomtries that allow for scalability of static structures or dynamic robots.
+Altough you may modify the OpenScad file that generates all of the parts to generate any custom geometry you need, it is useful to conisder the two most regular
+geometries that allow for scalability of static structures or dynamic robots.
 
 These are the [tetrahelix](https://en.wikipedia.org/wiki/Boerdijk%E2%80%93Coxeter_helix) and the [Octet Truss](https://en.wikipedia.org/wiki/Space_frame) developed by Buckminster Fuller.
 
@@ -88,7 +88,7 @@ You are free to use anything you find in the repo under either the GPL or the Cr
 
 Public Invention seeks to give gifts to the whole world. If someone takes one of our freely published inventions and seeks a monopoly through a patent on it, it is directly counter to our mission, in addition to being fraudulent and illegal.
 
-However, you are welcome to manufacture and sell a Turret Joint to your heart's content, since the Song Kwon Kim patent has expired. Certain improvements made by Public Invention will not be patented. We (and the inventor in this case, Robert L. Read) would appreciate attribution of those improvements, after crediting Song, Kwon and Kim with the basic idea..
+However, you are welcome to manufacture and sell a Turret Joint to your heart's content, since the Song Kwon Kim patent has expired. Certain improvements made by Public Invention will not be patented. We (and the inventor in this case, Robert L. Read) would appreciate attribution of those improvements, after crediting Song, Kwon and Kim with the basic idea.
 
 ## Research Problems
 
@@ -96,7 +96,7 @@ The Turret Joint presents a number of interesting research areas.
 
 * Can we use more shells to increase the flexibility of motion? As an example, if we constructed a two-member strut, can we build one that allows 180 degrees of rotation?  Or even 340 degress of rotation?
 * We are currently using a triangular rotator for greater stability. However, we have not proven that this allows all motion possible. An interesting question, both mathematically and in terms of engineering, is: what is the best rotor shape?
-* From a mechanical engineering point of view, the we have expressed the argument that the joint is strong "because it has no off-axis forces". This is a correct but vague argument, and far from a full analysis of the strength of the joint.  If the joint were actually made of steel (or some other engineering-grade material), how much tensile and compressive force could it really withstand?
+* From a mechanical engineering point of view, we have expressed the argument that the joint is strong "because it has no off-axis forces". This is a correct but vague argument, and far from a full analysis of the strength of the joint.  If the joint were actually made of steel (or some other engineering-grade material), how much tensile and compressive force could it really withstand?
 * The function of the joint depends upon it not binding.  It the members must move overcome friction to align themselves. Prove that this is true and compute a level of friction at which they might fail.
 
 
